@@ -54,6 +54,10 @@ class ClientController extends Controller
             return back()->with('error', 'Deze klant heeft nog gekoppelde gebruikers en kan niet verwijderd worden.');
         }
 
+        if ($client->projects()->exists()) {
+            return back()->with('error', 'Deze klant heeft nog gekoppelde projecten en kan niet verwijderd worden.');
+        }
+
         $client->delete();
 
         return redirect()

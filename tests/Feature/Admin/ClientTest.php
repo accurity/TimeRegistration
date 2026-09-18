@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Client;
+use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -118,6 +119,17 @@ class ClientTest extends TestCase
     {
         $client = Client::factory()->create();
         User::factory()->create(['role' => 'client', 'client_id' => $client->id]);
+
+        $response = $this->actingAs($this->admin())->delete("/admin/clients/{$client->id}");
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('clients', ['id' => $client->id]);
+    }
+
+    public function test_client_with_linked_projects_cannot_be_deleted(): void
+    {
+        $client = Client::factory()->create();
+        Project::factory()->create(['client_id' => $client->id]);
 
         $response = $this->actingAs($this->admin())->delete("/admin/clients/{$client->id}");
 
