@@ -26,7 +26,7 @@
                                 ['admin.clients.index', 'admin.clients.*', 'Klanten'],
                                 ['admin.projects.index', 'admin.projects.*', 'Projecten'],
                                 [null, null, 'Uren'],
-                                [null, null, 'Facturen'],
+                                ['admin.invoices.index', 'admin.invoices.*', 'Facturen'],
                             ] as [$routeName, $activePattern, $label])
                                 @php $isActive = $activePattern && request()->routeIs($activePattern); @endphp
                                 @if ($routeName)

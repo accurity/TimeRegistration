@@ -42,6 +42,11 @@ class Project extends Model
         return $this->hasMany(MonthlyApproval::class);
     }
 
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
+    }
+
     public function isActive(): bool
     {
         return $this->status === 'active';
