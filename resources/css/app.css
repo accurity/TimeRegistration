@@ -1,0 +1,23 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: 'Bitter';
+    src: url('../fonts/Bitter.woff2') format('woff2');
+    font-weight: 700;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'CalibriWeb';
+    src: url('../fonts/Calibri.woff2') format('woff2');
+    font-weight: 400;
+    font-display: swap;
+}
+
+@layer base {
+    body {
+        @apply bg-ink-50 text-ink-900 dark:bg-dark-bg dark:text-dark-text1;
+    }
+}
