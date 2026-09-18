@@ -24,7 +24,7 @@
                             @foreach ([
                                 ['admin.dashboard', 'admin.dashboard', 'Dashboard'],
                                 ['admin.clients.index', 'admin.clients.*', 'Klanten'],
-                                [null, null, 'Projecten'],
+                                ['admin.projects.index', 'admin.projects.*', 'Projecten'],
                                 [null, null, 'Uren'],
                                 [null, null, 'Facturen'],
                             ] as [$routeName, $activePattern, $label])
