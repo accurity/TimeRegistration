@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<style>
+@font-face { font-family: 'Bitter'; src: url('./assets/Bitter.woff2') format('woff2'); font-display: swap; }
+@font-face { font-family: 'CalibriWeb'; src: url('./assets/Calibri.woff2') format('woff2'); font-display: swap; }
+body { margin: 0; background: #E7ECF0; }
+a { color: #027CB5; text-decoration: none; }
+a:hover { color: #01608D; text-decoration: underline; }
+</style>
+</helmet>
+
+<div style="width:1480px;margin:0 auto;padding:56px 40px 120px;box-sizing:border-box;font-family:'CalibriWeb',Calibri,'Segoe UI',sans-serif;color:#0F1A21">
+
+  <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:40px;padding-bottom:28px;border-bottom:3px solid #027CB5;margin-bottom:56px">
+    <div style="max-width:760px">
+      <img src="./assets/logo-accurity.png" alt="Accurity — online communicatie" style="height:38px;width:auto;display:block;margin-bottom:24px">
+      <h1 style="margin:0 0 12px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:38px;line-height:46px;letter-spacing:-0.01em">Ontwerpvoorstel urenregistratie &amp; facturatie</h1>
+      <p style="margin:0;font-size:16px;line-height:26px;color:#4A5C68;text-wrap:pretty">Visueel systeem en schermontwerpen rond de bestaande huisstijl van Accurity. Alles is opgebouwd uit platte HTML/CSS — geen componentbibliotheek, geen JS-afhankelijke patronen. Elk onderdeel is uitgewerkt in een light- en een dark-variant.</p>
+    </div>
+    <div style="text-align:right;font-size:13px;line-height:22px;color:#6B7C88;white-space:nowrap">
+      <div style="font-weight:600;color:#0F1A21">Versie 1 — voorstel</div>
+      <div>Laravel 13 · Blade · app.css</div>
+      <div>Desktop 1280 px · tablet-tolerant</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:18px;border-top:2px solid #0F1A21;padding-top:14px;margin-bottom:28px">
+    <span style="font-size:12px;font-weight:600;letter-spacing:.14em;color:#027CB5">01</span>
+    <h2 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:24px;line-height:32px">Kleurenpalet</h2>
+    <p style="margin:0;font-size:14px;line-height:22px;color:#6B7C88;max-width:600px">Afgeleid van het merkblauw <strong style="color:#0F1A21;font-weight:600">#027CB5</strong>. Neutralen zijn licht koelblauw getint zodat ze onder het merkblauw blijven hangen; statuskleuren zijn bewust gedempt.</p>
+  </div>
+
+  <div style="background:#fff;border:1px solid #DEE5EA;border-radius:6px;padding:32px;margin-bottom:24px">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:16px">Merkblauw</div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:36px">
+      <div><div style="height:72px;border-radius:4px;background:#F2F8FC;border:1px solid #DEE5EA"></div><div style="margin-top:8px;font-size:13px;font-weight:600">brand-50</div><div style="font-size:12px;color:#6B7C88;font-variant-numeric:tabular-nums">#F2F8FC · paginavlakken</div></div>
+      <div><div style="height:72px;border-radius:4px;background:#E2F1F8"></div><div style="margin-top:8px;font-size:13px;font-weight:600">brand-100</div><div style="font-size:12px;color:#6B7C88">#E2F1F8 · actieve rij, tint</div></div>
+      <div><div style="height:72px;border-radius:4px;background:#1D93C9"></div><div style="margin-top:8px;font-size:13px;font-weight:600">brand-400</div><div style="font-size:12px;color:#6B7C88">#1D93C9 · focusring, links</div></div>
+      <div><div style="height:72px;border-radius:4px;background:#027CB5"></div><div style="margin-top:8px;font-size:13px;font-weight:600">brand-600 — basis</div><div style="font-size:12px;color:#6B7C88">#027CB5 · knoppen, accent</div></div>
+      <div><div style="height:72px;border-radius:4px;background:#01608D"></div><div style="margin-top:8px;font-size:13px;font-weight:600">brand-800</div><div style="font-size:12px;color:#6B7C88">#01608D · hover, actief</div></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:16px">Neutralen (koel getint)</div>
+    <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:12px;margin-bottom:36px">
+      <div><div style="height:56px;border-radius:4px;background:#FFFFFF;border:1px solid #DEE5EA"></div><div style="margin-top:8px;font-size:12px;font-weight:600">wit</div><div style="font-size:11px;color:#6B7C88">#FFFFFF</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#F6F8FA"></div><div style="margin-top:8px;font-size:12px;font-weight:600">ink-50</div><div style="font-size:11px;color:#6B7C88">#F6F8FA</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#EDF1F4"></div><div style="margin-top:8px;font-size:12px;font-weight:600">ink-100</div><div style="font-size:11px;color:#6B7C88">#EDF1F4</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#DEE5EA"></div><div style="margin-top:8px;font-size:12px;font-weight:600">ink-200</div><div style="font-size:11px;color:#6B7C88">#DEE5EA</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#C3CDD4"></div><div style="margin-top:8px;font-size:12px;font-weight:600">ink-300</div><div style="font-size:11px;color:#6B7C88">#C3CDD4</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#94A3AC"></div><div style="margin-top:8px;font-size:12px;font-weight:600">ink-400</div><div style="font-size:11px;color:#6B7C88">#94A3AC</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#6B7C88"></div><div style="margin-top:8px;font-size:12px;font-weight:600">ink-500</div><div style="font-size:11px;color:#6B7C88">#6B7C88</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#4A5C68"></div><div style="margin-top:8px;font-size:12px;font-weight:600">ink-700</div><div style="font-size:11px;color:#6B7C88">#4A5C68</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#0F1A21"></div><div style="margin-top:8px;font-size:12px;font-weight:600">ink-900</div><div style="font-size:11px;color:#6B7C88">#0F1A21</div></div>
+    </div>
+
+    <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:16px">Statuskleuren — gedempt, passend bij het blauw</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px">
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="width:44px;height:44px;border-radius:4px;background:#1E7A5F;flex:none"></div>
+        <div><div style="font-size:13px;font-weight:600">groen — akkoord</div><div style="font-size:12px;line-height:19px;color:#6B7C88">#1E7A5F op #E3F2EC<br>goedgekeurd · betaald</div></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="width:44px;height:44px;border-radius:4px;background:#A76A12;flex:none"></div>
+        <div><div style="font-size:13px;font-weight:600">amber — wacht op actie</div><div style="font-size:12px;line-height:19px;color:#6B7C88">#A76A12 op #FAEFDD<br>open · ter beoordeling</div></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="width:44px;height:44px;border-radius:4px;background:#AE3A2F;flex:none"></div>
+        <div><div style="font-size:13px;font-weight:600">rood — probleem</div><div style="font-size:12px;line-height:19px;color:#6B7C88">#AE3A2F op #F8E6E4<br>afgekeurd · vervallen</div></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="width:44px;height:44px;border-radius:4px;background:#027CB5;flex:none"></div>
+        <div><div style="font-size:13px;font-weight:600">blauw — in behandeling</div><div style="font-size:12px;line-height:19px;color:#6B7C88">#027CB5 op #E2F1F8<br>gefactureerd · verstuurd</div></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="width:44px;height:44px;border-radius:4px;background:#6B7C88;flex:none"></div>
+        <div><div style="font-size:13px;font-weight:600">grijs — neutraal</div><div style="font-size:12px;line-height:19px;color:#6B7C88">#6B7C88 op #EDF1F4<br>concept · gearchiveerd</div></div>
+      </div>
+      <div style="display:flex;gap:14px;align-items:flex-start">
+        <div style="width:44px;height:44px;border-radius:4px;background:#FFFFFF;border:1px solid #DEE5EA;flex:none"></div>
+        <div><div style="font-size:13px;font-weight:600">regel</div><div style="font-size:12px;line-height:19px;color:#6B7C88">Badges: 1 px rand in de<br>tekstkleur op 20% dekking.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#0E1519;border:1px solid #2A3A44;border-radius:6px;padding:32px;margin-bottom:64px">
+    <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:16px">Dark mode — vlakken, randen en tekst</div>
+    <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:12px;margin-bottom:32px">
+      <div><div style="height:56px;border-radius:4px;background:#0E1519;border:1px solid #2A3A44"></div><div style="margin-top:8px;font-size:12px;font-weight:600;color:#E6EDF1">bg</div><div style="font-size:11px;color:#9FB1BC">#0E1519</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#141E24"></div><div style="margin-top:8px;font-size:12px;font-weight:600;color:#E6EDF1">surface-1</div><div style="font-size:11px;color:#9FB1BC">#141E24</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#1B272E"></div><div style="margin-top:8px;font-size:12px;font-weight:600;color:#E6EDF1">surface-2</div><div style="font-size:11px;color:#9FB1BC">#1B272E</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#2A3A44"></div><div style="margin-top:8px;font-size:12px;font-weight:600;color:#E6EDF1">rand</div><div style="font-size:11px;color:#9FB1BC">#2A3A44</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#9FB1BC"></div><div style="margin-top:8px;font-size:12px;font-weight:600;color:#E6EDF1">tekst-2</div><div style="font-size:11px;color:#9FB1BC">#9FB1BC</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#E6EDF1"></div><div style="margin-top:8px;font-size:12px;font-weight:600;color:#E6EDF1">tekst-1</div><div style="font-size:11px;color:#9FB1BC">#E6EDF1</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#0B2C3D"></div><div style="margin-top:8px;font-size:12px;font-weight:600;color:#E6EDF1">brand-tint</div><div style="font-size:11px;color:#9FB1BC">#0B2C3D</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#3FA7D6"></div><div style="margin-top:8px;font-size:12px;font-weight:600;color:#E6EDF1">brand-400d</div><div style="font-size:11px;color:#9FB1BC">#3FA7D6</div></div>
+      <div><div style="height:56px;border-radius:4px;background:#63BBE3"></div><div style="margin-top:8px;font-size:12px;font-weight:600;color:#E6EDF1">brand hover</div><div style="font-size:11px;color:#9FB1BC">#63BBE3</div></div>
+    </div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center">
+      <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#12302A;color:#6FD3AC;border:1px solid #1E4C41">Goedgekeurd</span>
+      <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#33260F;color:#E0AC5C;border:1px solid #574118">Ter beoordeling</span>
+      <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#341D1A;color:#E88D82;border:1px solid #5A312C">Afgekeurd</span>
+      <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#0B2C3D;color:#63BBE3;border:1px solid #14455D">Gefactureerd</span>
+      <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#1B272E;color:#9FB1BC;border:1px solid #2A3A44">Concept</span>
+      <span style="margin-left:8px;font-size:13px;color:#9FB1BC">Op donkere vlakken gaat het merkblauw één stap omhoog in lichtheid (#3FA7D6) om 4.5:1 te halen — #027CB5 blijft alleen als knopvlak met witte tekst.</span>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:18px;border-top:2px solid #0F1A21;padding-top:14px;margin-bottom:28px">
+    <span style="font-size:12px;font-weight:600;letter-spacing:.14em;color:#027CB5">02</span>
+    <h2 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:24px;line-height:32px">Typografie</h2>
+    <p style="margin:0;font-size:14px;line-height:22px;color:#6B7C88;max-width:600px">Bitter voor koppen en nadrukkelijke labels, Calibri voor lopende tekst, formulieren en tabellen. Cijfers in tabellen altijd <code style="font-size:13px">font-variant-numeric: tabular-nums</code>.</p>
+  </div>
+
+  <div style="background:#fff;border:1px solid #DEE5EA;border-radius:6px;padding:8px 32px 24px;margin-bottom:64px">
+    <div style="display:grid;grid-template-columns:150px 1fr 220px;gap:24px;padding:18px 0;border-bottom:1px solid #EDF1F4;align-items:baseline">
+      <div style="font-size:13px;font-weight:600">H1 — paginatitel</div>
+      <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:32px;line-height:40px">Uren september 2026</div>
+      <div style="font-size:12px;line-height:19px;color:#6B7C88">Bitter 700 · 32/40 · −0.01em</div>
+    </div>
+    <div style="display:grid;grid-template-columns:150px 1fr 220px;gap:24px;padding:18px 0;border-bottom:1px solid #EDF1F4;align-items:baseline">
+      <div style="font-size:13px;font-weight:600">H2 — sectiekop</div>
+      <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:24px;line-height:32px">Openstaande facturen</div>
+      <div style="font-size:12px;line-height:19px;color:#6B7C88">Bitter 700 · 24/32</div>
+    </div>
+    <div style="display:grid;grid-template-columns:150px 1fr 220px;gap:24px;padding:18px 0;border-bottom:1px solid #EDF1F4;align-items:baseline">
+      <div style="font-size:13px;font-weight:600">H3 — kaartkop</div>
+      <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:18px;line-height:26px">Website migratie — Bouwgroep Vermeer</div>
+      <div style="font-size:12px;line-height:19px;color:#6B7C88">Bitter 700 · 18/26</div>
+    </div>
+    <div style="display:grid;grid-template-columns:150px 1fr 220px;gap:24px;padding:18px 0;border-bottom:1px solid #EDF1F4;align-items:baseline">
+      <div style="font-size:13px;font-weight:600">Body</div>
+      <div style="font-size:15px;line-height:24px;max-width:640px">De uren van deze maand zijn ter beoordeling aangeboden. Na goedkeuring wordt de factuur automatisch opgesteld en per e-mail verstuurd.</div>
+      <div style="font-size:12px;line-height:19px;color:#6B7C88">Calibri 400 · 15/24</div>
+    </div>
+    <div style="display:grid;grid-template-columns:150px 1fr 220px;gap:24px;padding:18px 0;border-bottom:1px solid #EDF1F4;align-items:baseline">
+      <div style="font-size:13px;font-weight:600">Tabel / formulier</div>
+      <div style="font-size:14px;line-height:22px;font-variant-numeric:tabular-nums">14-09-2026 · Contentmigratie blog · 3,25 uur · € 292,50</div>
+      <div style="font-size:12px;line-height:19px;color:#6B7C88">Calibri 400 · 14/22 · tabular</div>
+    </div>
+    <div style="display:grid;grid-template-columns:150px 1fr 220px;gap:24px;padding:18px 0;border-bottom:1px solid #EDF1F4;align-items:baseline">
+      <div style="font-size:13px;font-weight:600">Hulptekst</div>
+      <div style="font-size:13px;line-height:20px;color:#6B7C88">Decimaal invoeren, bijvoorbeeld 1,5 voor anderhalf uur.</div>
+      <div style="font-size:12px;line-height:19px;color:#6B7C88">Calibri 400 · 13/20 · ink-500</div>
+    </div>
+    <div style="display:grid;grid-template-columns:150px 1fr 220px;gap:24px;padding:18px 0;align-items:baseline">
+      <div style="font-size:13px;font-weight:600">Label / kolomkop</div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88">Vervaldatum</div>
+      <div style="font-size:12px;line-height:19px;color:#6B7C88">Calibri 600 · 11/16 · 0.1em caps</div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:18px;border-top:2px solid #0F1A21;padding-top:14px;margin-bottom:28px">
+    <span style="font-size:12px;font-weight:600;letter-spacing:.14em;color:#027CB5">03</span>
+    <h2 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:24px;line-height:32px">Componenten</h2>
+    <p style="margin:0;font-size:14px;line-height:22px;color:#6B7C88;max-width:600px">Rechte hoeken met 3–4 px radius, 1 px randen, geen slagschaduw behalve op zwevende kaarten. Focus altijd zichtbaar: 2 px ring in brand-400.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:64px">
+
+    <div style="background:#fff;border:1px solid #DEE5EA;border-radius:6px;padding:28px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:20px">Light</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px">
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;border:1px solid #027CB5">Opslaan</span>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#01608D;color:#fff;font-size:14px;font-weight:600;border:1px solid #01608D">hover</span>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#fff;color:#01608D;font-size:14px;font-weight:600;border:1px solid #C3CDD4">Annuleren</span>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:transparent;color:#027CB5;font-size:14px;font-weight:600;border:1px solid transparent">Tekstactie</span>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#fff;color:#AE3A2F;font-size:14px;font-weight:600;border:1px solid #E3B4AE">Verwijderen</span>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#EDF1F4;color:#94A3AC;font-size:14px;font-weight:600;border:1px solid #DEE5EA">Uitgeschakeld</span>
+      </div>
+      <div style="font-size:12px;color:#6B7C88;margin-bottom:24px">Eén primaire knop per scherm. Hoogte 38 px, padding 9/18, radius 3 px.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">
+        <div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Datum</div>
+          <div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;background:#fff">14-09-2026</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Uren — focus</div>
+          <div style="padding:9px 12px;border:1px solid #027CB5;border-radius:3px;font-size:14px;background:#fff;box-shadow:0 0 0 3px rgba(29,147,201,.28)">3,25</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Project — select</div>
+          <div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;background:#fff;display:flex;justify-content:space-between;color:#0F1A21">Website migratie <span style="color:#6B7C88">▾</span></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Tarief — fout</div>
+          <div style="padding:9px 12px;border:1px solid #AE3A2F;border-radius:3px;font-size:14px;background:#FDF7F6">—</div>
+          <div style="font-size:12px;color:#AE3A2F;margin-top:5px">Vul een tarief in.</div>
+        </div>
+      </div>
+      <div style="margin-bottom:24px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin:14px 0 6px">Omschrijving</div>
+        <div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;background:#fff;min-height:54px;color:#94A3AC">Korte omschrijving van het werk…</div>
+      </div>
+
+      <div style="border:1px solid #DEE5EA;border-radius:4px;overflow:hidden;margin-bottom:24px">
+        <div style="display:grid;grid-template-columns:110px 1fr 90px;gap:12px;padding:10px 14px;background:#F6F8FA;border-bottom:1px solid #DEE5EA;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88">
+          <div>Datum</div><div>Omschrijving</div><div style="text-align:right">Uren</div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px 1fr 90px;gap:12px;padding:11px 14px;font-size:14px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums"><div>14-09-2026</div><div>Contentmigratie blog</div><div style="text-align:right">3,25</div></div>
+        <div style="display:grid;grid-template-columns:110px 1fr 90px;gap:12px;padding:11px 14px;font-size:14px;border-bottom:1px solid #EDF1F4;background:#F6F8FA;font-variant-numeric:tabular-nums"><div>15-09-2026</div><div>Redactie productpagina's</div><div style="text-align:right">2,00</div></div>
+        <div style="display:grid;grid-template-columns:110px 1fr 90px;gap:12px;padding:11px 14px;font-size:14px;font-weight:600;background:#E2F1F8;font-variant-numeric:tabular-nums"><div></div><div>Totaal</div><div style="text-align:right">5,25</div></div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#FAEFDD;color:#A76A12;border:1px solid #EBD3A9">Open</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#E3F2EC;color:#1E7A5F;border:1px solid #B9DDCF">Goedgekeurd</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#F8E6E4;color:#AE3A2F;border:1px solid #E3B4AE">Afgekeurd</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#E2F1F8;color:#01608D;border:1px solid #B5D9EA">Gefactureerd</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#E3F2EC;color:#1E7A5F;border:1px solid #B9DDCF">Betaald</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#F8E6E4;color:#AE3A2F;border:1px solid #E3B4AE">Vervallen</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#EDF1F4;color:#4A5C68;border:1px solid #DEE5EA">Concept</span>
+      </div>
+    </div>
+
+    <div style="background:#0E1519;border:1px solid #2A3A44;border-radius:6px;padding:28px">
+      <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:20px">Dark</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px">
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;border:1px solid #3FA7D6">Opslaan</span>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#3FA7D6;color:#06222F;font-size:14px;font-weight:600;border:1px solid #63BBE3">hover</span>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:transparent;color:#C7D6DE;font-size:14px;font-weight:600;border:1px solid #3B4D58">Annuleren</span>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:transparent;color:#63BBE3;font-size:14px;font-weight:600;border:1px solid transparent">Tekstactie</span>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:transparent;color:#E88D82;font-size:14px;font-weight:600;border:1px solid #5A312C">Verwijderen</span>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#1B272E;color:#5D6E79;font-size:14px;font-weight:600;border:1px solid #2A3A44">Uitgeschakeld</span>
+      </div>
+      <div style="font-size:12px;color:#9FB1BC;margin-bottom:24px">Zelfde maatvoering; alleen vlak- en randkleuren wisselen.</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:8px">
+        <div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Datum</div>
+          <div style="padding:9px 12px;border:1px solid #3B4D58;border-radius:3px;font-size:14px;background:#141E24;color:#E6EDF1">14-09-2026</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Uren — focus</div>
+          <div style="padding:9px 12px;border:1px solid #3FA7D6;border-radius:3px;font-size:14px;background:#141E24;color:#E6EDF1;box-shadow:0 0 0 3px rgba(63,167,214,.3)">3,25</div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Project — select</div>
+          <div style="padding:9px 12px;border:1px solid #3B4D58;border-radius:3px;font-size:14px;background:#141E24;color:#E6EDF1;display:flex;justify-content:space-between">Website migratie <span style="color:#9FB1BC">▾</span></div>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Tarief — fout</div>
+          <div style="padding:9px 12px;border:1px solid #C1594C;border-radius:3px;font-size:14px;background:#1E1516;color:#E6EDF1">—</div>
+          <div style="font-size:12px;color:#E88D82;margin-top:5px">Vul een tarief in.</div>
+        </div>
+      </div>
+      <div style="margin-bottom:24px">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin:14px 0 6px">Omschrijving</div>
+        <div style="padding:9px 12px;border:1px solid #3B4D58;border-radius:3px;font-size:14px;background:#141E24;min-height:54px;color:#6E818D">Korte omschrijving van het werk…</div>
+      </div>
+
+      <div style="border:1px solid #2A3A44;border-radius:4px;overflow:hidden;margin-bottom:24px">
+        <div style="display:grid;grid-template-columns:110px 1fr 90px;gap:12px;padding:10px 14px;background:#1B272E;border-bottom:1px solid #2A3A44;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC">
+          <div>Datum</div><div>Omschrijving</div><div style="text-align:right">Uren</div>
+        </div>
+        <div style="display:grid;grid-template-columns:110px 1fr 90px;gap:12px;padding:11px 14px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;font-variant-numeric:tabular-nums"><div>14-09-2026</div><div>Contentmigratie blog</div><div style="text-align:right">3,25</div></div>
+        <div style="display:grid;grid-template-columns:110px 1fr 90px;gap:12px;padding:11px 14px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;background:#141E24;font-variant-numeric:tabular-nums"><div>15-09-2026</div><div>Redactie productpagina's</div><div style="text-align:right">2,00</div></div>
+        <div style="display:grid;grid-template-columns:110px 1fr 90px;gap:12px;padding:11px 14px;font-size:14px;font-weight:600;color:#E6EDF1;background:#0B2C3D;font-variant-numeric:tabular-nums"><div></div><div>Totaal</div><div style="text-align:right">5,25</div></div>
+      </div>
+
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#33260F;color:#E0AC5C;border:1px solid #574118">Open</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#12302A;color:#6FD3AC;border:1px solid #1E4C41">Goedgekeurd</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#341D1A;color:#E88D82;border:1px solid #5A312C">Afgekeurd</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#0B2C3D;color:#63BBE3;border:1px solid #14455D">Gefactureerd</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#12302A;color:#6FD3AC;border:1px solid #1E4C41">Betaald</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#341D1A;color:#E88D82;border:1px solid #5A312C">Vervallen</span>
+        <span style="display:inline-block;padding:4px 10px;border-radius:3px;font-size:12px;font-weight:600;background:#1B272E;color:#9FB1BC;border:1px solid #2A3A44">Concept</span>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:18px;border-top:2px solid #0F1A21;padding-top:14px;margin-bottom:28px">
+    <span style="font-size:12px;font-weight:600;letter-spacing:.14em;color:#027CB5">04</span>
+    <h2 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:24px;line-height:32px">Scherm 1 — Login &amp; layout-shell</h2>
+    <p style="margin:0;font-size:14px;line-height:22px;color:#6B7C88;max-width:600px">Eén inlogscherm voor beide rollen; na inloggen bepaalt de rol welke shell je krijgt. Logo op wit, gecentreerde kaart van 380 px op een rustig vlak.</p>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
+    <div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Light</div>
+      <div style="background:#F6F8FA;border:1px solid #DEE5EA;border-radius:6px;height:520px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:6px;background:#027CB5"></div>
+        <div style="width:380px;background:#fff;border:1px solid #DEE5EA;border-radius:6px;padding:36px 32px;box-shadow:0 4px 18px rgba(15,26,33,.07)">
+          <img src="./assets/logo-accurity.png" alt="Accurity" style="height:30px;width:auto;display:block;margin-bottom:28px">
+          <h3 style="margin:0 0 6px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:20px;line-height:28px">Inloggen</h3>
+          <p style="margin:0 0 24px;font-size:13px;line-height:20px;color:#6B7C88">Urenregistratie en facturatie</p>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">E-mailadres</div>
+          <div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;margin-bottom:16px">naam@bedrijf.nl</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Wachtwoord</div>
+          <div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;color:#94A3AC;margin-bottom:18px">••••••••••</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#4A5C68"><span style="width:14px;height:14px;border:1px solid #C3CDD4;border-radius:2px;display:inline-block"></span>Ingelogd blijven</div>
+            <span style="font-size:13px;color:#027CB5">Wachtwoord vergeten?</span>
+          </div>
+          <div style="padding:10px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;text-align:center">Inloggen</div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Dark</div>
+      <div style="background:#0E1519;border:1px solid #2A3A44;border-radius:6px;height:520px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
+        <div style="position:absolute;top:0;left:0;right:0;height:6px;background:#027CB5"></div>
+        <div style="width:380px;background:#141E24;border:1px solid #2A3A44;border-radius:6px;padding:36px 32px">
+          <img src="./assets/logo-accurity.png" alt="Accurity" style="height:30px;width:auto;display:block;margin-bottom:28px">
+          <h3 style="margin:0 0 6px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:20px;line-height:28px;color:#E6EDF1">Inloggen</h3>
+          <p style="margin:0 0 24px;font-size:13px;line-height:20px;color:#9FB1BC">Urenregistratie en facturatie</p>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">E-mailadres</div>
+          <div style="padding:9px 12px;border:1px solid #3B4D58;border-radius:3px;font-size:14px;color:#E6EDF1;background:#0E1519;margin-bottom:16px">naam@bedrijf.nl</div>
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Wachtwoord</div>
+          <div style="padding:9px 12px;border:1px solid #3B4D58;border-radius:3px;font-size:14px;color:#6E818D;background:#0E1519;margin-bottom:18px">••••••••••</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:22px">
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:#C7D6DE"><span style="width:14px;height:14px;border:1px solid #3B4D58;border-radius:2px;display:inline-block"></span>Ingelogd blijven</div>
+            <span style="font-size:13px;color:#63BBE3">Wachtwoord vergeten?</span>
+          </div>
+          <div style="padding:10px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;text-align:center">Inloggen</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:64px">
+    <div style="background:#fff;border:1px solid #DEE5EA;border-radius:6px;padding:24px 28px">
+      <h3 style="margin:0 0 4px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px">Shell A — intern (admin)</h3>
+      <p style="margin:0 0 18px;font-size:13px;line-height:20px;color:#6B7C88">Navigatie in de balk, actieve pagina met blauwe onderstreep. Compacte dichtheid.</p>
+      <div style="border:1px solid #DEE5EA;border-radius:4px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:58px;background:#fff;border-bottom:1px solid #DEE5EA">
+          <div style="display:flex;align-items:center;gap:28px">
+            <img src="./assets/logo-accurity.png" alt="Accurity" style="height:22px;width:auto;display:block">
+            <div style="display:flex;gap:22px;font-size:14px;color:#4A5C68;align-items:center;height:58px">
+              <span style="color:#01608D;font-weight:600;border-bottom:2px solid #027CB5;height:58px;display:flex;align-items:center">Dashboard</span>
+              <span>Klanten</span><span>Projecten</span><span>Uren</span><span>Facturen</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;font-size:13px;color:#4A5C68"><span>Martijn</span><span style="color:#027CB5">Uitloggen</span></div>
+        </div>
+        <div style="padding:16px 20px;background:#F6F8FA;font-size:12px;color:#6B7C88">container 1180 px · content op #F6F8FA · kaarten wit</div>
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid #DEE5EA;border-radius:6px;padding:24px 28px">
+      <h3 style="margin:0 0 4px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px">Shell B — klantportaal</h3>
+      <p style="margin:0 0 18px;font-size:13px;line-height:20px;color:#6B7C88">Soberder: geen menubalk met vijf items, alleen twee ankers en de bedrijfsnaam van de klant. Ruimer.</p>
+      <div style="border:1px solid #DEE5EA;border-radius:4px;overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;background:#fff;border-bottom:1px solid #C3CDD4">
+          <img src="./assets/logo-accurity.png" alt="Accurity" style="height:22px;width:auto;display:block">
+          <div style="display:flex;align-items:center;gap:20px;font-size:14px;color:#4A5C68"><span style="color:#01608D;font-weight:600">Uren</span><span>Mijn facturen</span><span style="color:#C3CDD4">|</span><span style="font-size:13px">Bouwgroep Vermeer</span><span style="color:#027CB5;font-size:13px">Uitloggen</span></div>
+        </div>
+        <div style="padding:16px 24px;background:#fff;font-size:12px;color:#6B7C88">container 920 px · content op wit · meer witruimte, geen KPI-kleurvlakken</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:18px;border-top:2px solid #0F1A21;padding-top:14px;margin-bottom:28px">
+    <span style="font-size:12px;font-weight:600;letter-spacing:.14em;color:#027CB5">05</span>
+    <h2 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:24px;line-height:32px">Scherm 2 — Admin-dashboard</h2>
+    <p style="margin:0;font-size:14px;line-height:22px;color:#6B7C88;max-width:600px">Drie kengetallen bovenaan, daaronder de facturenlijst en de lopende maand. Informatiedicht maar rustig: één accentkleur, rest neutraal.</p>
+  </div>
+
+  <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Light</div>
+  <div style="border:1px solid #DEE5EA;border-radius:6px;overflow:hidden;margin-bottom:28px;background:#F6F8FA">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;background:#fff;border-bottom:1px solid #DEE5EA">
+      <div style="display:flex;align-items:center;gap:32px">
+        <img src="./assets/logo-accurity.png" alt="Accurity" style="height:22px;width:auto;display:block">
+        <div style="display:flex;gap:24px;font-size:14px;color:#4A5C68;align-items:stretch;height:58px">
+          <span style="color:#01608D;font-weight:600;border-bottom:2px solid #027CB5;display:flex;align-items:center">Dashboard</span>
+          <span style="display:flex;align-items:center">Klanten</span><span style="display:flex;align-items:center">Projecten</span><span style="display:flex;align-items:center">Uren</span><span style="display:flex;align-items:center">Facturen</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;font-size:13px;color:#4A5C68"><span>Martijn — Accurity</span><span style="color:#027CB5">Uitloggen</span></div>
+    </div>
+
+    <div style="padding:28px 24px 32px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px">
+        <div>
+          <h1 style="margin:0 0 4px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:28px;line-height:36px">Dashboard</h1>
+          <div style="font-size:13px;color:#6B7C88">Vrijdag 18 september 2026</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#fff;color:#01608D;font-size:14px;font-weight:600;border:1px solid #C3CDD4">Uren registreren</span>
+          <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;border:1px solid #027CB5">Nieuwe factuur</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+        <div style="background:#fff;border:1px solid #DEE5EA;border-left:3px solid #A76A12;border-radius:4px;padding:18px 20px">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Openstaand</div>
+          <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:30px;line-height:36px;font-variant-numeric:tabular-nums">€ 4.840,00</div>
+          <div style="font-size:13px;color:#4A5C68;margin-top:6px">3 facturen · <span style="color:#AE3A2F">1 vervallen</span></div>
+        </div>
+        <div style="background:#fff;border:1px solid #DEE5EA;border-left:3px solid #027CB5;border-radius:4px;padding:18px 20px">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Klaar om te factureren</div>
+          <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:30px;line-height:36px;font-variant-numeric:tabular-nums">2 perioden</div>
+          <div style="font-size:13px;color:#4A5C68;margin-top:6px">€ 3.150,00 aan goedgekeurde uren</div>
+        </div>
+        <div style="background:#fff;border:1px solid #DEE5EA;border-left:3px solid #6B7C88;border-radius:4px;padding:18px 20px">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Wacht op goedkeuring</div>
+          <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:30px;line-height:36px;font-variant-numeric:tabular-nums">1 periode</div>
+          <div style="font-size:13px;color:#4A5C68;margin-top:6px">Bouwgroep Vermeer · verstuurd 01-09</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+        <div style="background:#fff;border:1px solid #DEE5EA;border-radius:4px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #DEE5EA">
+            <h2 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px">Recente facturen</h2>
+            <span style="font-size:13px;color:#027CB5">Alle facturen</span>
+          </div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:10px 20px;background:#F6F8FA;border-bottom:1px solid #DEE5EA;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88">
+            <div>Nummer</div><div>Klant</div><div>Periode</div><div style="text-align:right">Bedrag</div><div>Status</div><div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:12px 20px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>2026-041</div><div>Bouwgroep Vermeer</div><div style="color:#4A5C68">augustus 2026</div><div style="text-align:right">€ 1.815,00</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#E2F1F8;color:#01608D;border:1px solid #B5D9EA">Verstuurd</span></div><div style="text-align:right;color:#027CB5">PDF</div></div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:12px 20px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>2026-040</div><div>De Waardse Groep</div><div style="color:#4A5C68">augustus 2026</div><div style="text-align:right">€ 2.420,00</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#E3F2EC;color:#1E7A5F;border:1px solid #B9DDCF">Betaald</span></div><div style="text-align:right;color:#027CB5">PDF</div></div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:12px 20px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>2026-039</div><div>Stichting Molenpark</div><div style="color:#4A5C68">juli 2026</div><div style="text-align:right">€ 907,50</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#F8E6E4;color:#AE3A2F;border:1px solid #E3B4AE">Vervallen</span></div><div style="text-align:right;color:#027CB5">PDF</div></div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:12px 20px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>2026-038</div><div>Bouwgroep Vermeer</div><div style="color:#4A5C68">juli 2026</div><div style="text-align:right">€ 1.512,50</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#E3F2EC;color:#1E7A5F;border:1px solid #B9DDCF">Betaald</span></div><div style="text-align:right;color:#027CB5">PDF</div></div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:12px 20px;font-size:14px;align-items:center;font-variant-numeric:tabular-nums"><div>2026-037</div><div>De Waardse Groep</div><div style="color:#4A5C68">juni 2026</div><div style="text-align:right">€ 2.178,00</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#E3F2EC;color:#1E7A5F;border:1px solid #B9DDCF">Betaald</span></div><div style="text-align:right;color:#027CB5">PDF</div></div>
+        </div>
+
+        <div style="background:#fff;border:1px solid #DEE5EA;border-radius:4px;padding:16px 20px 20px">
+          <h2 style="margin:0 0 4px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px">September 2026</h2>
+          <div style="font-size:13px;color:#6B7C88;margin-bottom:18px">Geregistreerd, nog niet aangeboden</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:20px"><span style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:34px;line-height:40px;font-variant-numeric:tabular-nums">42,50</span><span style="font-size:14px;color:#6B7C88">uur</span></div>
+          <div style="display:grid;gap:14px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Website migratie</span><span style="font-variant-numeric:tabular-nums;color:#4A5C68">18,25</span></div>
+              <div style="height:6px;background:#EDF1F4;border-radius:3px;overflow:hidden"><div style="width:43%;height:6px;background:#027CB5"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Onderhoud &amp; support</span><span style="font-variant-numeric:tabular-nums;color:#4A5C68">14,75</span></div>
+              <div style="height:6px;background:#EDF1F4;border-radius:3px;overflow:hidden"><div style="width:35%;height:6px;background:#1D93C9"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px"><span>Nieuwsbrief redactie</span><span style="font-variant-numeric:tabular-nums;color:#4A5C68">9,50</span></div>
+              <div style="height:6px;background:#EDF1F4;border-radius:3px;overflow:hidden"><div style="width:22%;height:6px;background:#94A3AC"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:22px;padding-top:16px;border-top:1px solid #EDF1F4;font-size:13px;color:#4A5C68;line-height:20px">Periode aanbieden ter goedkeuring kan vanaf de 1e van de volgende maand.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Dark</div>
+  <div style="border:1px solid #2A3A44;border-radius:6px;overflow:hidden;margin-bottom:28px;background:#0E1519">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;background:#141E24;border-bottom:1px solid #2A3A44">
+      <div style="display:flex;align-items:center;gap:32px">
+        <img src="./assets/logo-accurity.png" alt="Accurity" style="height:22px;width:auto;display:block">
+        <div style="display:flex;gap:24px;font-size:14px;color:#9FB1BC;height:58px">
+          <span style="color:#63BBE3;font-weight:600;border-bottom:2px solid #3FA7D6;display:flex;align-items:center">Dashboard</span>
+          <span style="display:flex;align-items:center">Klanten</span><span style="display:flex;align-items:center">Projecten</span><span style="display:flex;align-items:center">Uren</span><span style="display:flex;align-items:center">Facturen</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;font-size:13px;color:#9FB1BC"><span>Martijn — Accurity</span><span style="color:#63BBE3">Uitloggen</span></div>
+    </div>
+
+    <div style="padding:28px 24px 32px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:22px">
+        <div>
+          <h1 style="margin:0 0 4px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:28px;line-height:36px;color:#E6EDF1">Dashboard</h1>
+          <div style="font-size:13px;color:#9FB1BC">Vrijdag 18 september 2026</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:transparent;color:#C7D6DE;font-size:14px;font-weight:600;border:1px solid #3B4D58">Uren registreren</span>
+          <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;border:1px solid #3FA7D6">Nieuwe factuur</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+        <div style="background:#141E24;border:1px solid #2A3A44;border-left:3px solid #E0AC5C;border-radius:4px;padding:18px 20px">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:10px">Openstaand</div>
+          <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:30px;line-height:36px;color:#E6EDF1;font-variant-numeric:tabular-nums">€ 4.840,00</div>
+          <div style="font-size:13px;color:#9FB1BC;margin-top:6px">3 facturen · <span style="color:#E88D82">1 vervallen</span></div>
+        </div>
+        <div style="background:#141E24;border:1px solid #2A3A44;border-left:3px solid #3FA7D6;border-radius:4px;padding:18px 20px">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:10px">Klaar om te factureren</div>
+          <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:30px;line-height:36px;color:#E6EDF1;font-variant-numeric:tabular-nums">2 perioden</div>
+          <div style="font-size:13px;color:#9FB1BC;margin-top:6px">€ 3.150,00 aan goedgekeurde uren</div>
+        </div>
+        <div style="background:#141E24;border:1px solid #2A3A44;border-left:3px solid #6B7C88;border-radius:4px;padding:18px 20px">
+          <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:10px">Wacht op goedkeuring</div>
+          <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:30px;line-height:36px;color:#E6EDF1;font-variant-numeric:tabular-nums">1 periode</div>
+          <div style="font-size:13px;color:#9FB1BC;margin-top:6px">Bouwgroep Vermeer · verstuurd 01-09</div>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+        <div style="background:#141E24;border:1px solid #2A3A44;border-radius:4px">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid #2A3A44">
+            <h2 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px;color:#E6EDF1">Recente facturen</h2>
+            <span style="font-size:13px;color:#63BBE3">Alle facturen</span>
+          </div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:10px 20px;background:#1B272E;border-bottom:1px solid #2A3A44;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC">
+            <div>Nummer</div><div>Klant</div><div>Periode</div><div style="text-align:right">Bedrag</div><div>Status</div><div></div>
+          </div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:12px 20px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;align-items:center;font-variant-numeric:tabular-nums"><div>2026-041</div><div>Bouwgroep Vermeer</div><div style="color:#9FB1BC">augustus 2026</div><div style="text-align:right">€ 1.815,00</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#0B2C3D;color:#63BBE3;border:1px solid #14455D">Verstuurd</span></div><div style="text-align:right;color:#63BBE3">PDF</div></div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:12px 20px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;align-items:center;font-variant-numeric:tabular-nums"><div>2026-040</div><div>De Waardse Groep</div><div style="color:#9FB1BC">augustus 2026</div><div style="text-align:right">€ 2.420,00</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#12302A;color:#6FD3AC;border:1px solid #1E4C41">Betaald</span></div><div style="text-align:right;color:#63BBE3">PDF</div></div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:12px 20px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;align-items:center;font-variant-numeric:tabular-nums"><div>2026-039</div><div>Stichting Molenpark</div><div style="color:#9FB1BC">juli 2026</div><div style="text-align:right">€ 907,50</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#341D1A;color:#E88D82;border:1px solid #5A312C">Vervallen</span></div><div style="text-align:right;color:#63BBE3">PDF</div></div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:12px 20px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;align-items:center;font-variant-numeric:tabular-nums"><div>2026-038</div><div>Bouwgroep Vermeer</div><div style="color:#9FB1BC">juli 2026</div><div style="text-align:right">€ 1.512,50</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#12302A;color:#6FD3AC;border:1px solid #1E4C41">Betaald</span></div><div style="text-align:right;color:#63BBE3">PDF</div></div>
+          <div style="display:grid;grid-template-columns:100px 1.4fr 1fr 110px 120px 70px;gap:12px;padding:12px 20px;font-size:14px;color:#E6EDF1;align-items:center;font-variant-numeric:tabular-nums"><div>2026-037</div><div>De Waardse Groep</div><div style="color:#9FB1BC">juni 2026</div><div style="text-align:right">€ 2.178,00</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#12302A;color:#6FD3AC;border:1px solid #1E4C41">Betaald</span></div><div style="text-align:right;color:#63BBE3">PDF</div></div>
+        </div>
+
+        <div style="background:#141E24;border:1px solid #2A3A44;border-radius:4px;padding:16px 20px 20px">
+          <h2 style="margin:0 0 4px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px;color:#E6EDF1">September 2026</h2>
+          <div style="font-size:13px;color:#9FB1BC;margin-bottom:18px">Geregistreerd, nog niet aangeboden</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:20px"><span style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:34px;line-height:40px;color:#E6EDF1;font-variant-numeric:tabular-nums">42,50</span><span style="font-size:14px;color:#9FB1BC">uur</span></div>
+          <div style="display:grid;gap:14px">
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#E6EDF1;margin-bottom:5px"><span>Website migratie</span><span style="font-variant-numeric:tabular-nums;color:#9FB1BC">18,25</span></div>
+              <div style="height:6px;background:#1B272E;border-radius:3px;overflow:hidden"><div style="width:43%;height:6px;background:#3FA7D6"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#E6EDF1;margin-bottom:5px"><span>Onderhoud &amp; support</span><span style="font-variant-numeric:tabular-nums;color:#9FB1BC">14,75</span></div>
+              <div style="height:6px;background:#1B272E;border-radius:3px;overflow:hidden"><div style="width:35%;height:6px;background:#2E87B3"></div></div>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;color:#E6EDF1;margin-bottom:5px"><span>Nieuwsbrief redactie</span><span style="font-variant-numeric:tabular-nums;color:#9FB1BC">9,50</span></div>
+              <div style="height:6px;background:#1B272E;border-radius:3px;overflow:hidden"><div style="width:22%;height:6px;background:#5D6E79"></div></div>
+            </div>
+          </div>
+          <div style="margin-top:22px;padding-top:16px;border-top:1px solid #2A3A44;font-size:13px;color:#9FB1BC;line-height:20px">Periode aanbieden ter goedkeuring kan vanaf de 1e van de volgende maand.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:24px;margin-bottom:64px">
+    <div style="background:#fff;border:1px solid #DEE5EA;border-radius:6px;overflow:hidden">
+      <div style="padding:18px 22px;border-bottom:1px solid #DEE5EA;display:flex;align-items:center;justify-content:space-between">
+        <h3 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px">Klanten — lijstweergave</h3>
+        <span style="display:inline-block;padding:7px 14px;border-radius:3px;background:#027CB5;color:#fff;font-size:13px;font-weight:600">Klant toevoegen</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1.4fr 1.2fr 90px 110px 80px;gap:12px;padding:10px 22px;background:#F6F8FA;border-bottom:1px solid #DEE5EA;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88"><div>Klant</div><div>Contact</div><div style="text-align:right">Projecten</div><div style="text-align:right">Tarief</div><div></div></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1.2fr 90px 110px 80px;gap:12px;padding:12px 22px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>Bouwgroep Vermeer</div><div style="color:#4A5C68">j.vermeer@…</div><div style="text-align:right">2</div><div style="text-align:right">€ 90,00</div><div style="text-align:right;color:#027CB5">Bewerken</div></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1.2fr 90px 110px 80px;gap:12px;padding:12px 22px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;background:#F6F8FA;font-variant-numeric:tabular-nums"><div>De Waardse Groep</div><div style="color:#4A5C68">info@…</div><div style="text-align:right">1</div><div style="text-align:right">€ 110,00</div><div style="text-align:right;color:#027CB5">Bewerken</div></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1.2fr 90px 110px 80px;gap:12px;padding:12px 22px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>Stichting Molenpark</div><div style="color:#4A5C68">bestuur@…</div><div style="text-align:right">1</div><div style="text-align:right">€ 82,50</div><div style="text-align:right;color:#027CB5">Bewerken</div></div>
+      <div style="display:grid;grid-template-columns:1.4fr 1.2fr 90px 110px 80px;gap:12px;padding:12px 22px;font-size:14px;align-items:center;background:#F6F8FA;font-variant-numeric:tabular-nums"><div>Praktijk Van Dijk</div><div style="color:#4A5C68">m.vandijk@…</div><div style="text-align:right">0</div><div style="text-align:right">€ 95,00</div><div style="text-align:right;color:#027CB5">Bewerken</div></div>
+    </div>
+    <div style="background:#fff;border:1px solid #DEE5EA;border-radius:6px;overflow:hidden">
+      <div style="padding:18px 22px;border-bottom:1px solid #DEE5EA"><h3 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px">Klant bewerken — formulier</h3></div>
+      <div style="padding:20px 22px 22px">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+          <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Bedrijfsnaam</div><div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px">Bouwgroep Vermeer</div></div>
+          <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Contactpersoon</div><div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px">J. Vermeer</div></div>
+          <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">E-mail</div><div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px">j.vermeer@voorbeeld.nl</div></div>
+          <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Standaardtarief</div><div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px">€ 90,00</div></div>
+        </div>
+        <div style="margin-bottom:14px"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Factuuradres</div><div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;min-height:50px;line-height:22px">Havenweg 44<br>3421 AB Nieuwegein</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px">
+          <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Btw-nummer</div><div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px">NL8•••••••B01</div></div>
+          <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Betaaltermijn</div><div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;display:flex;justify-content:space-between">14 dagen <span style="color:#6B7C88">▾</span></div></div>
+        </div>
+        <div style="display:flex;gap:10px;padding-top:18px;border-top:1px solid #EDF1F4">
+          <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600">Opslaan</span>
+          <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#fff;color:#01608D;font-size:14px;font-weight:600;border:1px solid #C3CDD4">Annuleren</span>
+          <span style="margin-left:auto;display:inline-block;padding:9px 18px;border-radius:3px;background:#fff;color:#AE3A2F;font-size:14px;font-weight:600;border:1px solid #E3B4AE">Verwijderen</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:18px;border-top:2px solid #0F1A21;padding-top:14px;margin-bottom:28px">
+    <span style="font-size:12px;font-weight:600;letter-spacing:.14em;color:#027CB5">06</span>
+    <h2 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:24px;line-height:32px">Scherm 3 — Uren registreren</h2>
+    <p style="margin:0;font-size:14px;line-height:22px;color:#6B7C88;max-width:600px">Invoerregel bovenaan de tabel, zodat de cursor na opslaan meteen weer op datum staat. Weeknummers als scheiding, totaal altijd in beeld.</p>
+  </div>
+
+  <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Light</div>
+  <div style="border:1px solid #DEE5EA;border-radius:6px;overflow:hidden;margin-bottom:28px;background:#F6F8FA">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;background:#fff;border-bottom:1px solid #DEE5EA">
+      <div style="display:flex;align-items:center;gap:32px">
+        <img src="./assets/logo-accurity.png" alt="Accurity" style="height:22px;width:auto;display:block">
+        <div style="display:flex;gap:24px;font-size:14px;color:#4A5C68;height:58px">
+          <span style="display:flex;align-items:center">Dashboard</span><span style="display:flex;align-items:center">Klanten</span><span style="display:flex;align-items:center">Projecten</span>
+          <span style="color:#01608D;font-weight:600;border-bottom:2px solid #027CB5;display:flex;align-items:center">Uren</span>
+          <span style="display:flex;align-items:center">Facturen</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;font-size:13px;color:#4A5C68"><span>Martijn — Accurity</span><span style="color:#027CB5">Uitloggen</span></div>
+    </div>
+
+    <div style="padding:28px 24px 32px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <h1 style="margin:0 0 8px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:28px;line-height:36px">Uren registreren</h1>
+          <div style="display:flex;gap:10px">
+            <div style="padding:7px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;background:#fff;display:flex;gap:26px;justify-content:space-between;min-width:260px">Bouwgroep Vermeer — Website migratie <span style="color:#6B7C88">▾</span></div>
+            <div style="padding:7px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;background:#fff;display:flex;gap:26px;justify-content:space-between;min-width:150px">September 2026 <span style="color:#6B7C88">▾</span></div>
+          </div>
+        </div>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600">Ter goedkeuring versturen</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2.4fr 1fr;gap:16px;align-items:start">
+        <div style="background:#fff;border:1px solid #DEE5EA;border-radius:4px;overflow:hidden">
+          <div style="padding:16px 20px;background:#F2F8FC;border-bottom:1px solid #DEE5EA">
+            <div style="display:grid;grid-template-columns:130px 100px 1fr 120px;gap:12px;align-items:end">
+              <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Datum</div><div style="padding:9px 12px;border:1px solid #027CB5;border-radius:3px;font-size:14px;background:#fff;box-shadow:0 0 0 3px rgba(29,147,201,.28)">18-09-2026</div></div>
+              <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Uren</div><div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;background:#fff;color:#94A3AC">0,00</div></div>
+              <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Omschrijving</div><div style="padding:9px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;background:#fff;color:#94A3AC">Waaraan is gewerkt?</div></div>
+              <div style="padding:9px 12px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;text-align:center">Toevoegen</div>
+            </div>
+            <div style="font-size:12px;color:#6B7C88;margin-top:8px">Decimaal invoeren, bijvoorbeeld 1,5 voor anderhalf uur. Enter slaat op en zet de cursor terug op datum.</div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:10px 20px;background:#F6F8FA;border-bottom:1px solid #DEE5EA;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88"><div>Datum</div><div style="text-align:right">Uren</div><div>Omschrijving</div><div></div></div>
+          <div style="padding:7px 20px;background:#FBFCFD;border-bottom:1px solid #EDF1F4;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#94A3AC">Week 38</div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>17-09-2026</div><div style="text-align:right">2,50</div><div>Redirects en 301-tabel controleren</div><div style="text-align:right;color:#027CB5">Bewerken · <span style="color:#AE3A2F">Verwijderen</span></div></div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>16-09-2026</div><div style="text-align:right">4,00</div><div>Contentmigratie blog (deel 2)</div><div style="text-align:right;color:#027CB5">Bewerken · <span style="color:#AE3A2F">Verwijderen</span></div></div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>15-09-2026</div><div style="text-align:right">3,25</div><div>Redactie productpagina's</div><div style="text-align:right;color:#027CB5">Bewerken · <span style="color:#AE3A2F">Verwijderen</span></div></div>
+          <div style="padding:7px 20px;background:#FBFCFD;border-bottom:1px solid #EDF1F4;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#94A3AC">Week 37</div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>11-09-2026</div><div style="text-align:right">1,50</div><div>Overleg oplevering, telefonisch</div><div style="text-align:right;color:#027CB5">Bewerken · <span style="color:#AE3A2F">Verwijderen</span></div></div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>10-09-2026</div><div style="text-align:right">3,00</div><div>Templates hoofdnavigatie</div><div style="text-align:right;color:#027CB5">Bewerken · <span style="color:#AE3A2F">Verwijderen</span></div></div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>09-09-2026</div><div style="text-align:right">4,00</div><div>Contentmigratie blog (deel 1)</div><div style="text-align:right;color:#027CB5">Bewerken · <span style="color:#AE3A2F">Verwijderen</span></div></div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:13px 20px;font-size:15px;font-weight:600;background:#E2F1F8;font-variant-numeric:tabular-nums"><div>Totaal september</div><div style="text-align:right">18,25</div><div></div><div style="text-align:right">€ 1.642,50</div></div>
+        </div>
+
+        <div style="display:grid;gap:16px">
+          <div style="background:#fff;border:1px solid #DEE5EA;border-radius:4px;padding:18px 20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <h3 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px">September 2026</h3>
+              <span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#EDF1F4;color:#4A5C68;border:1px solid #DEE5EA">Concept</span>
+            </div>
+            <div style="display:grid;gap:9px;font-size:14px">
+              <div style="display:flex;justify-content:space-between"><span style="color:#4A5C68">Geregistreerd</span><span style="font-variant-numeric:tabular-nums">18,25 uur</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:#4A5C68">Uurtarief</span><span style="font-variant-numeric:tabular-nums">€ 90,00</span></div>
+              <div style="display:flex;justify-content:space-between;padding-top:9px;border-top:1px solid #EDF1F4;font-weight:600"><span>Excl. btw</span><span style="font-variant-numeric:tabular-nums">€ 1.642,50</span></div>
+            </div>
+          </div>
+          <div style="background:#fff;border:1px solid #DEE5EA;border-radius:4px;padding:18px 20px">
+            <h3 style="margin:0 0 10px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px">Volgende stap</h3>
+            <p style="margin:0 0 14px;font-size:13px;line-height:20px;color:#4A5C68">Bij versturen krijgt de klant een e-mail met een link naar het portaal. Zolang de periode ter beoordeling ligt, kun je geen uren meer wijzigen.</p>
+            <div style="padding:9px 12px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;text-align:center">Ter goedkeuring versturen</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Dark</div>
+  <div style="border:1px solid #2A3A44;border-radius:6px;overflow:hidden;margin-bottom:64px;background:#0E1519">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:58px;background:#141E24;border-bottom:1px solid #2A3A44">
+      <div style="display:flex;align-items:center;gap:32px">
+        <img src="./assets/logo-accurity.png" alt="Accurity" style="height:22px;width:auto;display:block">
+        <div style="display:flex;gap:24px;font-size:14px;color:#9FB1BC;height:58px">
+          <span style="display:flex;align-items:center">Dashboard</span><span style="display:flex;align-items:center">Klanten</span><span style="display:flex;align-items:center">Projecten</span>
+          <span style="color:#63BBE3;font-weight:600;border-bottom:2px solid #3FA7D6;display:flex;align-items:center">Uren</span>
+          <span style="display:flex;align-items:center">Facturen</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;font-size:13px;color:#9FB1BC"><span>Martijn — Accurity</span><span style="color:#63BBE3">Uitloggen</span></div>
+    </div>
+    <div style="padding:28px 24px 32px">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px">
+        <div>
+          <h1 style="margin:0 0 8px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:28px;line-height:36px;color:#E6EDF1">Uren registreren</h1>
+          <div style="display:flex;gap:10px">
+            <div style="padding:7px 12px;border:1px solid #3B4D58;border-radius:3px;font-size:14px;background:#141E24;color:#E6EDF1;display:flex;gap:26px;justify-content:space-between;min-width:260px">Bouwgroep Vermeer — Website migratie <span style="color:#9FB1BC">▾</span></div>
+            <div style="padding:7px 12px;border:1px solid #3B4D58;border-radius:3px;font-size:14px;background:#141E24;color:#E6EDF1;display:flex;gap:26px;justify-content:space-between;min-width:150px">September 2026 <span style="color:#9FB1BC">▾</span></div>
+          </div>
+        </div>
+        <span style="display:inline-block;padding:9px 18px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;border:1px solid #3FA7D6">Ter goedkeuring versturen</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:2.4fr 1fr;gap:16px;align-items:start">
+        <div style="background:#141E24;border:1px solid #2A3A44;border-radius:4px;overflow:hidden">
+          <div style="padding:16px 20px;background:#102530;border-bottom:1px solid #2A3A44">
+            <div style="display:grid;grid-template-columns:130px 100px 1fr 120px;gap:12px;align-items:end">
+              <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Datum</div><div style="padding:9px 12px;border:1px solid #3FA7D6;border-radius:3px;font-size:14px;background:#0E1519;color:#E6EDF1;box-shadow:0 0 0 3px rgba(63,167,214,.3)">18-09-2026</div></div>
+              <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Uren</div><div style="padding:9px 12px;border:1px solid #3B4D58;border-radius:3px;font-size:14px;background:#0E1519;color:#6E818D">0,00</div></div>
+              <div><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Omschrijving</div><div style="padding:9px 12px;border:1px solid #3B4D58;border-radius:3px;font-size:14px;background:#0E1519;color:#6E818D">Waaraan is gewerkt?</div></div>
+              <div style="padding:9px 12px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;text-align:center;border:1px solid #3FA7D6">Toevoegen</div>
+            </div>
+            <div style="font-size:12px;color:#9FB1BC;margin-top:8px">Decimaal invoeren, bijvoorbeeld 1,5 voor anderhalf uur.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:10px 20px;background:#1B272E;border-bottom:1px solid #2A3A44;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC"><div>Datum</div><div style="text-align:right">Uren</div><div>Omschrijving</div><div></div></div>
+          <div style="padding:7px 20px;background:#101A20;border-bottom:1px solid #212F37;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6E818D">Week 38</div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;align-items:center;font-variant-numeric:tabular-nums"><div>17-09-2026</div><div style="text-align:right">2,50</div><div>Redirects en 301-tabel controleren</div><div style="text-align:right;color:#63BBE3">Bewerken · <span style="color:#E88D82">Verwijderen</span></div></div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;align-items:center;font-variant-numeric:tabular-nums"><div>16-09-2026</div><div style="text-align:right">4,00</div><div>Contentmigratie blog (deel 2)</div><div style="text-align:right;color:#63BBE3">Bewerken · <span style="color:#E88D82">Verwijderen</span></div></div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;align-items:center;font-variant-numeric:tabular-nums"><div>15-09-2026</div><div style="text-align:right">3,25</div><div>Redactie productpagina's</div><div style="text-align:right;color:#63BBE3">Bewerken · <span style="color:#E88D82">Verwijderen</span></div></div>
+          <div style="padding:7px 20px;background:#101A20;border-bottom:1px solid #212F37;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6E818D">Week 37</div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;align-items:center;font-variant-numeric:tabular-nums"><div>11-09-2026</div><div style="text-align:right">1,50</div><div>Overleg oplevering, telefonisch</div><div style="text-align:right;color:#63BBE3">Bewerken · <span style="color:#E88D82">Verwijderen</span></div></div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;align-items:center;font-variant-numeric:tabular-nums"><div>10-09-2026</div><div style="text-align:right">3,00</div><div>Templates hoofdnavigatie</div><div style="text-align:right;color:#63BBE3">Bewerken · <span style="color:#E88D82">Verwijderen</span></div></div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:11px 20px;font-size:14px;color:#E6EDF1;border-bottom:1px solid #212F37;align-items:center;font-variant-numeric:tabular-nums"><div>09-09-2026</div><div style="text-align:right">4,00</div><div>Contentmigratie blog (deel 1)</div><div style="text-align:right;color:#63BBE3">Bewerken · <span style="color:#E88D82">Verwijderen</span></div></div>
+          <div style="display:grid;grid-template-columns:130px 100px 1fr 130px;gap:12px;padding:13px 20px;font-size:15px;font-weight:600;color:#E6EDF1;background:#0B2C3D;font-variant-numeric:tabular-nums"><div>Totaal september</div><div style="text-align:right">18,25</div><div></div><div style="text-align:right">€ 1.642,50</div></div>
+        </div>
+        <div style="display:grid;gap:16px">
+          <div style="background:#141E24;border:1px solid #2A3A44;border-radius:4px;padding:18px 20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+              <h3 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px;color:#E6EDF1">September 2026</h3>
+              <span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#1B272E;color:#9FB1BC;border:1px solid #2A3A44">Concept</span>
+            </div>
+            <div style="display:grid;gap:9px;font-size:14px;color:#E6EDF1">
+              <div style="display:flex;justify-content:space-between"><span style="color:#9FB1BC">Geregistreerd</span><span style="font-variant-numeric:tabular-nums">18,25 uur</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="color:#9FB1BC">Uurtarief</span><span style="font-variant-numeric:tabular-nums">€ 90,00</span></div>
+              <div style="display:flex;justify-content:space-between;padding-top:9px;border-top:1px solid #2A3A44;font-weight:600"><span>Excl. btw</span><span style="font-variant-numeric:tabular-nums">€ 1.642,50</span></div>
+            </div>
+          </div>
+          <div style="background:#141E24;border:1px solid #2A3A44;border-radius:4px;padding:18px 20px">
+            <h3 style="margin:0 0 10px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px;color:#E6EDF1">Volgende stap</h3>
+            <p style="margin:0 0 14px;font-size:13px;line-height:20px;color:#9FB1BC">Bij versturen krijgt de klant een e-mail met een link naar het portaal. Zolang de periode ter beoordeling ligt, kun je geen uren meer wijzigen.</p>
+            <div style="padding:9px 12px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;text-align:center;border:1px solid #3FA7D6">Ter goedkeuring versturen</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:18px;border-top:2px solid #0F1A21;padding-top:14px;margin-bottom:28px">
+    <span style="font-size:12px;font-weight:600;letter-spacing:.14em;color:#027CB5">07</span>
+    <h2 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:24px;line-height:32px">Scherm 4 — Klantportaal: goedkeuring</h2>
+    <p style="margin:0;font-size:14px;line-height:22px;color:#6B7C88;max-width:600px">Smallere kolom (920 px), meer witruimte, geen sidebar. De status staat direct onder de titel; de twee acties staan onderaan, ná de urenlijst — pas beoordelen als je alles gezien hebt.</p>
+  </div>
+
+  <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Light</div>
+  <div style="border:1px solid #DEE5EA;border-radius:6px;overflow:hidden;margin-bottom:28px;background:#fff">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:62px;border-bottom:1px solid #C3CDD4">
+      <img src="./assets/logo-accurity.png" alt="Accurity" style="height:24px;width:auto;display:block">
+      <div style="display:flex;align-items:center;gap:22px;font-size:14px;color:#4A5C68"><span style="color:#01608D;font-weight:600">Uren</span><span>Mijn facturen</span><span style="color:#DEE5EA">|</span><span style="font-size:13px">Bouwgroep Vermeer</span><span style="color:#027CB5;font-size:13px">Uitloggen</span></div>
+    </div>
+    <div style="padding:44px 0 56px;display:flex;justify-content:center">
+      <div style="width:920px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:28px">
+          <div>
+            <h1 style="margin:0 0 6px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:32px;line-height:40px">Uren september 2026</h1>
+            <div style="font-size:15px;color:#4A5C68">Website migratie · uitgevoerd door Accurity — online communicatie</div>
+          </div>
+          <span style="display:inline-block;padding:6px 12px;border-radius:3px;font-size:13px;font-weight:600;background:#FAEFDD;color:#A76A12;border:1px solid #EBD3A9;white-space:nowrap">Ter beoordeling</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid #DEE5EA;border-radius:4px;background:#F6F8FA;margin-bottom:28px">
+          <div style="padding:16px 20px;border-right:1px solid #DEE5EA"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Periode</div><div style="font-size:15px">1 – 30 september</div></div>
+          <div style="padding:16px 20px;border-right:1px solid #DEE5EA"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Totaal uren</div><div style="font-size:15px;font-variant-numeric:tabular-nums">18,25</div></div>
+          <div style="padding:16px 20px;border-right:1px solid #DEE5EA"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Uurtarief</div><div style="font-size:15px;font-variant-numeric:tabular-nums">€ 90,00</div></div>
+          <div style="padding:16px 20px"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Bedrag excl. btw</div><div style="font-size:15px;font-weight:600;font-variant-numeric:tabular-nums">€ 1.642,50</div></div>
+        </div>
+
+        <div style="border:1px solid #DEE5EA;border-radius:4px;overflow:hidden;margin-bottom:28px">
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:11px 20px;background:#F6F8FA;border-bottom:1px solid #DEE5EA;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88"><div>Datum</div><div>Omschrijving</div><div style="text-align:right">Uren</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums"><div>9 september</div><div>Contentmigratie blog (deel 1)</div><div style="text-align:right">4,00</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums"><div>10 september</div><div>Templates hoofdnavigatie</div><div style="text-align:right">3,00</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums"><div>11 september</div><div>Overleg oplevering, telefonisch</div><div style="text-align:right">1,50</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums"><div>15 september</div><div>Redactie productpagina's</div><div style="text-align:right">3,25</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums"><div>16 september</div><div>Contentmigratie blog (deel 2)</div><div style="text-align:right">4,00</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums"><div>17 september</div><div>Redirects en 301-tabel controleren</div><div style="text-align:right">2,50</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:15px 20px;font-size:16px;font-weight:600;background:#E2F1F8;font-variant-numeric:tabular-nums"><div>Totaal</div><div></div><div style="text-align:right">18,25</div></div>
+        </div>
+
+        <div style="border:1px solid #C3CDD4;border-top:3px solid #027CB5;border-radius:4px;padding:26px 28px">
+          <h2 style="margin:0 0 6px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:20px;line-height:28px">Beoordeling</h2>
+          <p style="margin:0 0 22px;font-size:14px;line-height:22px;color:#4A5C68;max-width:640px">Na goedkeuring ontvangt u binnen één werkdag de factuur per e-mail; hij staat dan ook onder <span style="color:#027CB5">Mijn facturen</span>. Bij afkeuren nemen wij contact met u op.</p>
+          <div style="display:grid;grid-template-columns:1fr 300px;gap:28px;align-items:end">
+            <div>
+              <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:6px">Reden — alleen verplicht bij afkeuren</div>
+              <div style="padding:10px 12px;border:1px solid #C3CDD4;border-radius:3px;font-size:14px;min-height:62px;color:#94A3AC;background:#fff">Bijvoorbeeld: het overleg van 11 september duurde korter.</div>
+            </div>
+            <div style="display:grid;gap:10px">
+              <div style="padding:12px;border-radius:3px;background:#1E7A5F;color:#fff;font-size:15px;font-weight:600;text-align:center">Uren goedkeuren</div>
+              <div style="padding:12px;border-radius:3px;background:#fff;color:#AE3A2F;font-size:15px;font-weight:600;text-align:center;border:1px solid #E3B4AE">Afkeuren</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88;margin-bottom:10px">Dark — zelfde scherm, na goedkeuring</div>
+  <div style="border:1px solid #2A3A44;border-radius:6px;overflow:hidden;margin-bottom:28px;background:#0E1519">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:0 28px;height:62px;border-bottom:1px solid #2A3A44;background:#141E24">
+      <img src="./assets/logo-accurity.png" alt="Accurity" style="height:24px;width:auto;display:block">
+      <div style="display:flex;align-items:center;gap:22px;font-size:14px;color:#9FB1BC"><span style="color:#63BBE3;font-weight:600">Uren</span><span>Mijn facturen</span><span style="color:#2A3A44">|</span><span style="font-size:13px">Bouwgroep Vermeer</span><span style="color:#63BBE3;font-size:13px">Uitloggen</span></div>
+    </div>
+    <div style="padding:44px 0 56px;display:flex;justify-content:center">
+      <div style="width:920px">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:24px;margin-bottom:28px">
+          <div>
+            <h1 style="margin:0 0 6px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:32px;line-height:40px;color:#E6EDF1">Uren september 2026</h1>
+            <div style="font-size:15px;color:#9FB1BC">Website migratie · uitgevoerd door Accurity — online communicatie</div>
+          </div>
+          <span style="display:inline-block;padding:6px 12px;border-radius:3px;font-size:13px;font-weight:600;background:#12302A;color:#6FD3AC;border:1px solid #1E4C41;white-space:nowrap">Goedgekeurd</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #2A3A44;border-radius:4px;background:#141E24;margin-bottom:28px">
+          <div style="padding:16px 20px;border-right:1px solid #2A3A44"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Periode</div><div style="font-size:15px;color:#E6EDF1">1 – 30 september</div></div>
+          <div style="padding:16px 20px;border-right:1px solid #2A3A44"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Totaal uren</div><div style="font-size:15px;color:#E6EDF1;font-variant-numeric:tabular-nums">18,25</div></div>
+          <div style="padding:16px 20px;border-right:1px solid #2A3A44"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Uurtarief</div><div style="font-size:15px;color:#E6EDF1;font-variant-numeric:tabular-nums">€ 90,00</div></div>
+          <div style="padding:16px 20px"><div style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC;margin-bottom:6px">Bedrag excl. btw</div><div style="font-size:15px;font-weight:600;color:#E6EDF1;font-variant-numeric:tabular-nums">€ 1.642,50</div></div>
+        </div>
+
+        <div style="border:1px solid #2A3A44;border-radius:4px;overflow:hidden;margin-bottom:28px">
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:11px 20px;background:#1B272E;border-bottom:1px solid #2A3A44;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9FB1BC"><div>Datum</div><div>Omschrijving</div><div style="text-align:right">Uren</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;color:#E6EDF1;border-bottom:1px solid #212F37;font-variant-numeric:tabular-nums"><div>9 september</div><div>Contentmigratie blog (deel 1)</div><div style="text-align:right">4,00</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;color:#E6EDF1;border-bottom:1px solid #212F37;font-variant-numeric:tabular-nums"><div>10 september</div><div>Templates hoofdnavigatie</div><div style="text-align:right">3,00</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;color:#E6EDF1;border-bottom:1px solid #212F37;font-variant-numeric:tabular-nums"><div>11 september</div><div>Overleg oplevering, telefonisch</div><div style="text-align:right">1,50</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;color:#E6EDF1;border-bottom:1px solid #212F37;font-variant-numeric:tabular-nums"><div>15 september</div><div>Redactie productpagina's</div><div style="text-align:right">3,25</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;color:#E6EDF1;border-bottom:1px solid #212F37;font-variant-numeric:tabular-nums"><div>16 september</div><div>Contentmigratie blog (deel 2)</div><div style="text-align:right">4,00</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:13px 20px;font-size:15px;color:#E6EDF1;border-bottom:1px solid #212F37;font-variant-numeric:tabular-nums"><div>17 september</div><div>Redirects en 301-tabel controleren</div><div style="text-align:right">2,50</div></div>
+          <div style="display:grid;grid-template-columns:150px 1fr 110px;gap:16px;padding:15px 20px;font-size:16px;font-weight:600;color:#E6EDF1;background:#0B2C3D;font-variant-numeric:tabular-nums"><div>Totaal</div><div></div><div style="text-align:right">18,25</div></div>
+        </div>
+
+        <div style="border:1px solid #1E4C41;border-left:3px solid #1E7A5F;border-radius:4px;padding:20px 24px;background:#111F1C;display:flex;align-items:center;justify-content:space-between;gap:24px">
+          <div>
+            <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px;color:#E6EDF1;margin-bottom:4px">Goedgekeurd op 1 oktober 2026 door J. Vermeer</div>
+            <div style="font-size:14px;line-height:22px;color:#9FB1BC">Factuur 2026-042 is opgesteld en per e-mail verstuurd.</div>
+          </div>
+          <span style="display:inline-block;padding:10px 18px;border-radius:3px;background:#027CB5;color:#fff;font-size:14px;font-weight:600;border:1px solid #3FA7D6;white-space:nowrap">Factuur downloaden</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #DEE5EA;border-radius:6px;overflow:hidden;margin-bottom:64px">
+    <div style="padding:18px 24px;border-bottom:1px solid #DEE5EA"><h3 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px">Klantportaal — Mijn facturen</h3></div>
+    <div style="display:grid;grid-template-columns:110px 1.1fr 130px 130px 130px 140px 110px;gap:16px;padding:11px 24px;background:#F6F8FA;border-bottom:1px solid #DEE5EA;font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#6B7C88"><div>Factuur</div><div>Periode</div><div>Datum</div><div>Vervaldatum</div><div style="text-align:right">Bedrag</div><div>Status</div><div style="text-align:right">Download</div></div>
+    <div style="display:grid;grid-template-columns:110px 1.1fr 130px 130px 130px 140px 110px;gap:16px;padding:13px 24px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;font-variant-numeric:tabular-nums"><div>2026-041</div><div>Website migratie · aug 2026</div><div>01-09-2026</div><div>15-09-2026</div><div style="text-align:right">€ 1.815,00</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#FAEFDD;color:#A76A12;border:1px solid #EBD3A9">Openstaand</span></div><div style="text-align:right;color:#027CB5">PDF</div></div>
+    <div style="display:grid;grid-template-columns:110px 1.1fr 130px 130px 130px 140px 110px;gap:16px;padding:13px 24px;font-size:14px;border-bottom:1px solid #EDF1F4;align-items:center;background:#F6F8FA;font-variant-numeric:tabular-nums"><div>2026-038</div><div>Website migratie · jul 2026</div><div>01-08-2026</div><div>15-08-2026</div><div style="text-align:right">€ 1.512,50</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#E3F2EC;color:#1E7A5F;border:1px solid #B9DDCF">Betaald</span></div><div style="text-align:right;color:#027CB5">PDF</div></div>
+    <div style="display:grid;grid-template-columns:110px 1.1fr 130px 130px 130px 140px 110px;gap:16px;padding:13px 24px;font-size:14px;align-items:center;font-variant-numeric:tabular-nums"><div>2026-034</div><div>Onderhoud &amp; support · jun 2026</div><div>01-07-2026</div><div>15-07-2026</div><div style="text-align:right">€ 742,50</div><div><span style="display:inline-block;padding:3px 9px;border-radius:3px;font-size:12px;font-weight:600;background:#E3F2EC;color:#1E7A5F;border:1px solid #B9DDCF">Betaald</span></div><div style="text-align:right;color:#027CB5">PDF</div></div>
+  </div>
+
+  <div style="display:flex;align-items:baseline;gap:18px;border-top:2px solid #0F1A21;padding-top:14px;margin-bottom:28px">
+    <span style="font-size:12px;font-weight:600;letter-spacing:.14em;color:#027CB5">08</span>
+    <h2 style="margin:0;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:24px;line-height:32px">Scherm 5 — Factuur-PDF</h2>
+    <p style="margin:0;font-size:14px;line-height:22px;color:#6B7C88;max-width:600px">Opgebouwd met tabellen en <code style="font-size:13px">display:block</code> — geen flexbox of grid, zodat dompdf het aankan. Eén kleurvlak (merkblauw) in de kop, verder zwart-op-wit.</p>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:32px;align-items:flex-start;margin-bottom:24px">
+    <div style="width:794px;height:1123px;flex:none;background:#fff;border:1px solid #DEE5EA;box-shadow:0 2px 12px rgba(15,26,33,.08);padding:56px 60px 48px;box-sizing:border-box;color:#0F1A21;position:relative">
+      <div style="overflow:hidden;margin-bottom:40px">
+        <div style="float:left;width:52%">
+          <img src="./assets/logo-accurity.png" alt="Accurity" style="height:34px;width:auto;display:block;margin-bottom:18px">
+          <div style="font-size:12px;line-height:19px;color:#4A5C68">
+            Accurity — online communicatie<br>
+            Voorbeeldstraat 12<br>
+            1234 AB Utrecht<br>
+            info@accurity.nl · 06 12 34 56 78
+          </div>
+        </div>
+        <div style="float:right;width:44%;text-align:right">
+          <div style="font-family:'Bitter',Georgia,serif;font-weight:700;font-size:30px;line-height:38px;color:#027CB5;margin-bottom:14px">Factuur</div>
+          <table style="width:100%;border-collapse:collapse;font-size:12px">
+            <tr><td style="padding:3px 0;color:#4A5C68;text-align:right">Factuurnummer</td><td style="padding:3px 0 3px 16px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums">2026-042</td></tr>
+            <tr><td style="padding:3px 0;color:#4A5C68;text-align:right">Factuurdatum</td><td style="padding:3px 0 3px 16px;text-align:right;font-variant-numeric:tabular-nums">01-10-2026</td></tr>
+            <tr><td style="padding:3px 0;color:#4A5C68;text-align:right">Vervaldatum</td><td style="padding:3px 0 3px 16px;text-align:right;font-variant-numeric:tabular-nums">15-10-2026</td></tr>
+            <tr><td style="padding:3px 0;color:#4A5C68;text-align:right">Klantnummer</td><td style="padding:3px 0 3px 16px;text-align:right;font-variant-numeric:tabular-nums">K-014</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <div style="margin-bottom:34px">
+        <div style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B7C88;margin-bottom:8px">Factuur aan</div>
+        <div style="font-size:13px;line-height:21px">
+          <strong style="font-weight:600">Bouwgroep Vermeer B.V.</strong><br>
+          T.a.v. J. Vermeer<br>
+          Havenweg 44<br>
+          3421 AB Nieuwegein<br>
+          <span style="color:#4A5C68">Btw-nummer NL8•••••••B01</span>
+        </div>
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:28px">
+        <tr style="background:#027CB5;color:#fff">
+          <td style="padding:9px 12px;text-align:left;font-weight:600">Omschrijving</td>
+          <td style="padding:9px 12px;text-align:right;font-weight:600;width:70px">Uren</td>
+          <td style="padding:9px 12px;text-align:right;font-weight:600;width:90px">Tarief</td>
+          <td style="padding:9px 12px;text-align:right;font-weight:600;width:110px">Bedrag</td>
+        </tr>
+        <tr>
+          <td style="padding:12px;border-bottom:1px solid #DEE5EA">Website migratie — werkzaamheden september 2026<br><span style="color:#4A5C68;font-size:11.5px">Urenspecificatie: zie bijlage op pagina 2</span></td>
+          <td style="padding:12px;border-bottom:1px solid #DEE5EA;text-align:right;font-variant-numeric:tabular-nums">18,25</td>
+          <td style="padding:12px;border-bottom:1px solid #DEE5EA;text-align:right;font-variant-numeric:tabular-nums">€ 90,00</td>
+          <td style="padding:12px;border-bottom:1px solid #DEE5EA;text-align:right;font-variant-numeric:tabular-nums">€ 1.642,50</td>
+        </tr>
+        <tr>
+          <td colspan="2"></td>
+          <td style="padding:8px 12px;text-align:right;color:#4A5C68">Subtotaal</td>
+          <td style="padding:8px 12px;text-align:right;font-variant-numeric:tabular-nums">€ 1.642,50</td>
+        </tr>
+        <tr>
+          <td colspan="2"></td>
+          <td style="padding:8px 12px;text-align:right;color:#4A5C68">Btw 21%</td>
+          <td style="padding:8px 12px;text-align:right;font-variant-numeric:tabular-nums">€ 344,93</td>
+        </tr>
+        <tr>
+          <td colspan="2"></td>
+          <td style="padding:11px 12px;text-align:right;font-weight:600;background:#E2F1F8;border-top:2px solid #027CB5">Totaal te voldoen</td>
+          <td style="padding:11px 12px;text-align:right;font-weight:600;background:#E2F1F8;border-top:2px solid #027CB5;font-variant-numeric:tabular-nums">€ 1.987,43</td>
+        </tr>
+      </table>
+
+      <div style="font-size:12px;line-height:20px;color:#4A5C68;margin-bottom:38px">Wij verzoeken u het totaalbedrag vóór 15-10-2026 over te maken op NL12 RABO 0123 4567 89 t.n.v. Accurity, onder vermelding van factuurnummer 2026-042.</div>
+
+      <div style="position:absolute;left:60px;right:60px;bottom:48px;border-top:1px solid #DEE5EA;padding-top:14px;font-size:10.5px;line-height:17px;color:#6B7C88;overflow:hidden">
+        <div style="float:left;width:33%">KvK 12345678</div>
+        <div style="float:left;width:34%;text-align:center">Btw NL001234567B01</div>
+        <div style="float:right;width:33%;text-align:right">Pagina 1 van 2</div>
+      </div>
+    </div>
+
+    <div style="width:794px;height:1123px;flex:none;background:#fff;border:1px solid #DEE5EA;box-shadow:0 2px 12px rgba(15,26,33,.08);padding:56px 60px 48px;box-sizing:border-box;color:#0F1A21;position:relative">
+      <div style="overflow:hidden;margin-bottom:34px">
+        <div style="float:left"><img src="./assets/logo-accurity.png" alt="Accurity" style="height:24px;width:auto;display:block"></div>
+        <div style="float:right;font-size:11.5px;color:#4A5C68;text-align:right;padding-top:5px">Bijlage bij factuur 2026-042</div>
+      </div>
+      <h2 style="margin:0 0 4px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:20px;line-height:28px">Urenspecificatie september 2026</h2>
+      <div style="font-size:12.5px;color:#4A5C68;margin-bottom:22px">Website migratie · Bouwgroep Vermeer B.V. · goedgekeurd op 01-10-2026</div>
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+        <tr style="background:#F6F8FA">
+          <td style="padding:9px 12px;border-bottom:1px solid #C3CDD4;font-weight:600;width:110px">Datum</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #C3CDD4;font-weight:600">Omschrijving</td>
+          <td style="padding:9px 12px;border-bottom:1px solid #C3CDD4;font-weight:600;text-align:right;width:80px">Uren</td>
+        </tr>
+        <tr><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums">09-09-2026</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4">Contentmigratie blog (deel 1)</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;text-align:right;font-variant-numeric:tabular-nums">4,00</td></tr>
+        <tr><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums">10-09-2026</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4">Templates hoofdnavigatie</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;text-align:right;font-variant-numeric:tabular-nums">3,00</td></tr>
+        <tr><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums">11-09-2026</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4">Overleg oplevering, telefonisch</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;text-align:right;font-variant-numeric:tabular-nums">1,50</td></tr>
+        <tr><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums">15-09-2026</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4">Redactie productpagina's</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;text-align:right;font-variant-numeric:tabular-nums">3,25</td></tr>
+        <tr><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums">16-09-2026</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4">Contentmigratie blog (deel 2)</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;text-align:right;font-variant-numeric:tabular-nums">4,00</td></tr>
+        <tr><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;font-variant-numeric:tabular-nums">17-09-2026</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4">Redirects en 301-tabel controleren</td><td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;text-align:right;font-variant-numeric:tabular-nums">2,50</td></tr>
+        <tr style="background:#E2F1F8"><td style="padding:11px 12px;font-weight:600">Totaal</td><td></td><td style="padding:11px 12px;text-align:right;font-weight:600;font-variant-numeric:tabular-nums">18,25</td></tr>
+      </table>
+      <div style="position:absolute;left:60px;right:60px;bottom:48px;border-top:1px solid #DEE5EA;padding-top:14px;font-size:10.5px;line-height:17px;color:#6B7C88;overflow:hidden">
+        <div style="float:left;width:50%">Accurity — online communicatie</div>
+        <div style="float:right;width:50%;text-align:right">Pagina 2 van 2</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="background:#fff;border:1px solid #DEE5EA;border-radius:6px;padding:24px 28px;margin-bottom:40px">
+    <h3 style="margin:0 0 12px;font-family:'Bitter',Georgia,serif;font-weight:700;font-size:16px;line-height:24px">Aandachtspunten voor de bouw</h3>
+    <ul style="margin:0;padding-left:18px;font-size:14px;line-height:24px;color:#4A5C68;max-width:900px">
+      <li>De PDF gebruikt de TTF-varianten van Bitter en Calibri (base64 geregistreerd in dompdf); het web gebruikt de woff2-bestanden.</li>
+      <li>Kolomindelingen in de schermen zijn hier met grid getekend; in Blade zijn het gewone <code style="font-size:13px">&lt;table&gt;</code>-elementen met vaste kolombreedtes — visueel identiek.</li>
+      <li>Statuskleuren zijn bewust gedempt; alleen goedkeuren/afkeuren in het portaal krijgt een gekleurde knop, elders is blauw de enige primaire actie.</li>
+      <li>Bedrijfsgegevens, adressen en bedragen in dit voorstel zijn voorbeelddata.</li>
+    </ul>
+  </div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1480}}"></script>
+</body>
+</html>
