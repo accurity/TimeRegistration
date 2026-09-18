@@ -28,6 +28,8 @@ class Setting extends Model
             'address' => '',
             'postal_code' => '',
             'city' => '',
+            'default_payment_term_days' => 14,
+            'default_vat_percentage' => 21.00,
         ]);
     }
 

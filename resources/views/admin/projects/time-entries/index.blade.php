@@ -128,12 +128,13 @@
                 @elseif ($approval->isPending())
                     <p class="text-[13px] leading-5 text-ink-700 dark:text-dark-text2">Ingediend op {{ $approval->submitted_at?->translatedFormat('j F Y, H:i') }}. In afwachting van de klant.</p>
                 @else
-                    <p class="text-[13px] leading-5 text-ink-700 dark:text-dark-text2">
+                    <p class="mb-[14px] text-[13px] leading-5 text-ink-700 dark:text-dark-text2">
                         Goedgekeurd op {{ $approval->approved_at?->translatedFormat('j F Y') }}
                         @if ($approval->approvedBy)
                             door {{ $approval->approvedBy->name }}
                         @endif
                     </p>
+                    <a href="{{ route('admin.invoices.create', ['project_id' => $project->id, 'year' => $year, 'month' => $month]) }}" class="inline-flex w-full items-center justify-center rounded-[3px] border border-brand-600 bg-brand-600 px-[18px] py-[9px] text-sm font-semibold text-white hover:border-brand-800 hover:bg-brand-800">Factuur opstellen</a>
                 @endif
             </div>
         </div>
