@@ -99,15 +99,7 @@
             <div class="rounded-md border border-ink-200 bg-white p-5 dark:border-dark-border dark:bg-dark-surface1">
                 <div class="mb-[14px] flex items-center justify-between">
                     <h3 class="font-display text-base font-bold leading-6 text-ink-900 dark:text-dark-text1">{{ $periodLabel }}</h3>
-                    @if (! $approval)
-                        <span class="inline-block rounded-[3px] border border-status-gray-border bg-status-gray-bg px-[9px] py-[3px] text-[12px] font-semibold text-status-gray-fg dark:border-status-gray-border-dark dark:bg-status-gray-bg-dark dark:text-status-gray-fg-dark">Concept</span>
-                    @elseif ($approval->isPending())
-                        <span class="inline-block rounded-[3px] border border-status-amber-border bg-status-amber-bg px-[9px] py-[3px] text-[12px] font-semibold text-status-amber-fg dark:border-status-amber-border-dark dark:bg-status-amber-bg-dark dark:text-status-amber-fg-dark">Ter beoordeling</span>
-                    @elseif ($approval->isApproved())
-                        <span class="inline-block rounded-[3px] border border-status-green-border bg-status-green-bg px-[9px] py-[3px] text-[12px] font-semibold text-status-green-fg dark:border-status-green-border-dark dark:bg-status-green-bg-dark dark:text-status-green-fg-dark">Goedgekeurd</span>
-                    @else
-                        <span class="inline-block rounded-[3px] border border-status-red-border bg-status-red-bg px-[9px] py-[3px] text-[12px] font-semibold text-status-red-fg dark:border-status-red-border-dark dark:bg-status-red-bg-dark dark:text-status-red-fg-dark">Afgekeurd</span>
-                    @endif
+                    <x-approval-status-badge :status="$approval->status ?? 'draft'" />
                 </div>
                 <div class="grid gap-[9px] text-sm" style="font-variant-numeric: tabular-nums">
                     <div class="flex justify-between"><span class="text-ink-700 dark:text-dark-text2">Geregistreerd</span><span class="text-ink-900 dark:text-dark-text1">{{ number_format($totalHours, 2, ',', '.') }} uur</span></div>
