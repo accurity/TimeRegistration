@@ -22,25 +22,21 @@
 
                         <nav class="flex h-[58px] items-center gap-6 text-sm">
                             @foreach ([
-                                ['admin.dashboard', 'admin.dashboard', 'Dashboard'],
-                                ['admin.clients.index', 'admin.clients.*', 'Klanten'],
-                                ['admin.projects.index', 'admin.projects.*', 'Projecten'],
-                                [null, null, 'Uren'],
-                                ['admin.invoices.index', 'admin.invoices.*', 'Facturen'],
-                            ] as [$routeName, $activePattern, $label])
-                                @php $isActive = $activePattern && request()->routeIs($activePattern); @endphp
-                                @if ($routeName)
-                                    <a
-                                        href="{{ route($routeName) }}"
-                                        @class([
-                                            'flex h-[58px] items-center',
-                                            'border-b-2 border-brand-600 font-semibold text-brand-800 dark:border-brand-darkfg dark:text-brand-darkhover' => $isActive,
-                                            'text-ink-700 dark:text-dark-text2' => ! $isActive,
-                                        ])
-                                    >{{ $label }}</a>
-                                @else
-                                    <span class="flex h-[58px] items-center text-ink-700 dark:text-dark-text2">{{ $label }}</span>
-                                @endif
+                                ['admin.dashboard', ['admin.dashboard'], 'Dashboard'],
+                                ['admin.clients.index', ['admin.clients.*'], 'Klanten'],
+                                ['admin.projects.index', ['admin.projects.index', 'admin.projects.create', 'admin.projects.edit'], 'Projecten'],
+                                ['admin.projects.index', ['admin.projects.time-entries.*'], 'Uren'],
+                                ['admin.invoices.index', ['admin.invoices.*'], 'Facturen'],
+                            ] as [$routeName, $activePatterns, $label])
+                                @php $isActive = request()->routeIs(...$activePatterns); @endphp
+                                <a
+                                    href="{{ route($routeName) }}"
+                                    @class([
+                                        'flex h-[58px] items-center',
+                                        'border-b-2 border-brand-600 font-semibold text-brand-800 dark:border-brand-darkfg dark:text-brand-darkhover' => $isActive,
+                                        'text-ink-700 dark:text-dark-text2' => ! $isActive,
+                                    ])
+                                >{{ $label }}</a>
                             @endforeach
                         </nav>
                     </div>
