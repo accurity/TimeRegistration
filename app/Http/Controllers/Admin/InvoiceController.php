@@ -220,6 +220,28 @@ class InvoiceController extends Controller
         return Storage::disk('invoices')->download($invoice->pdf_path, "{$invoice->invoice_number}.pdf");
     }
 
+    public function cancel(Invoice $invoice): RedirectResponse
+    {
+        abort_unless($invoice->isFinal(), 404);
+
+        $invoice->update(['status' => 'cancelled']);
+
+        return redirect()
+            ->route('admin.invoices.index')
+            ->with('status', 'Factuur geannuleerd.');
+    }
+
+    public function markPaid(Invoice $invoice): RedirectResponse
+    {
+        abort_unless($invoice->isFinal(), 404);
+
+        $invoice->update(['payment_status' => 'paid', 'paid_at' => now()]);
+
+        return redirect()
+            ->route('admin.invoices.index')
+            ->with('status', 'Factuur gemarkeerd als betaald.');
+    }
+
     private function uninvoicedAmount(Project $project, int $year, int $month): float
     {
         return $project->timeEntries()

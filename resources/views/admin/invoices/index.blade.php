@@ -16,7 +16,7 @@
     @endif
 
     <div class="overflow-hidden rounded-md border border-ink-200 bg-white dark:border-dark-border dark:bg-dark-surface1">
-        <div class="grid grid-cols-[140px_1.2fr_1fr_110px_120px_120px_100px] gap-3 border-b border-ink-200 bg-ink-50 px-[22px] py-[10px] text-[11px] font-semibold uppercase tracking-[.1em] text-ink-500 dark:border-dark-border dark:bg-dark-surface2 dark:text-dark-text2">
+        <div class="grid grid-cols-[140px_1.1fr_1fr_100px_110px_110px_210px] gap-3 border-b border-ink-200 bg-ink-50 px-[22px] py-[10px] text-[11px] font-semibold uppercase tracking-[.1em] text-ink-500 dark:border-dark-border dark:bg-dark-surface2 dark:text-dark-text2">
             <div>Factuur</div>
             <div>Klant</div>
             <div>Project</div>
@@ -28,7 +28,7 @@
 
         @forelse ($invoices as $invoice)
             <div @class([
-                'grid grid-cols-[140px_1.2fr_1fr_110px_120px_120px_100px] items-center gap-3 border-b border-ink-100 px-[22px] py-3 text-sm dark:border-dark-border',
+                'grid grid-cols-[140px_1.1fr_1fr_100px_110px_110px_210px] items-center gap-3 border-b border-ink-100 px-[22px] py-3 text-sm dark:border-dark-border',
                 'bg-ink-50 dark:bg-dark-surface2' => $loop->even,
                 'last:border-b-0' => true,
             ]) style="font-variant-numeric: tabular-nums">
@@ -37,12 +37,35 @@
                 <div class="text-ink-700 dark:text-dark-text2">{{ $invoice->project->name }}</div>
                 <div class="text-ink-700 dark:text-dark-text2">{{ \Illuminate\Support\Carbon::createFromDate($invoice->period_year, $invoice->period_month, 1)->translatedFormat('M Y') }}</div>
                 <div class="text-right text-ink-900 dark:text-dark-text1">&euro; {{ number_format($invoice->total, 2, ',', '.') }}</div>
-                <div><x-invoice-status-badge :status="$invoice->status" /></div>
-                <div class="text-right">
+                <div><x-invoice-status-badge :status="$invoice->status" :payment-status="$invoice->payment_status" /></div>
+                <div class="text-right space-x-2 whitespace-nowrap">
                     @if ($invoice->isDraft())
                         <a href="{{ route('admin.invoices.edit', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Bewerken</a>
-                    @elseif ($invoice->pdf_path)
-                        <a href="{{ route('admin.invoices.download', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">PDF</a>
+                    @else
+                        @if ($invoice->pdf_path)
+                            <a href="{{ route('admin.invoices.download', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">PDF</a>
+                        @endif
+                        @if ($invoice->isFinal())
+                            @if (! $invoice->isPaid())
+                                <button
+                                    type="submit"
+                                    form="mark-paid-invoice-{{ $invoice->id }}"
+                                    class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover"
+                                >Betaald</button>
+                                <form id="mark-paid-invoice-{{ $invoice->id }}" method="POST" action="{{ route('admin.invoices.mark-paid', $invoice) }}" class="hidden">
+                                    @csrf
+                                </form>
+                            @endif
+                            <button
+                                type="submit"
+                                form="cancel-invoice-{{ $invoice->id }}"
+                                class="text-status-red-fg hover:underline dark:text-status-red-fg-dark"
+                                onclick="return confirm('Deze factuur annuleren?')"
+                            >Annuleren</button>
+                            <form id="cancel-invoice-{{ $invoice->id }}" method="POST" action="{{ route('admin.invoices.cancel', $invoice) }}" class="hidden">
+                                @csrf
+                            </form>
+                        @endif
                     @endif
                 </div>
             </div>
