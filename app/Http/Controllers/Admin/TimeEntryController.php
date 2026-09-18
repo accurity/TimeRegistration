@@ -30,6 +30,11 @@ class TimeEntryController extends Controller
 
         $weeks = $entries->groupBy(fn (TimeEntry $entry) => $entry->date->isoWeek());
 
+        $approval = $project->monthlyApprovals()
+            ->where('year', $year)
+            ->where('month', $month)
+            ->first();
+
         return view('admin.projects.time-entries.index', [
             'project' => $project,
             'weeks' => $weeks,
@@ -38,6 +43,7 @@ class TimeEntryController extends Controller
             'year' => $year,
             'month' => $month,
             'monthOptions' => $this->monthOptions(),
+            'approval' => $approval,
         ]);
     }
 

@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ClientUserController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\MonthlyApprovalController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TimeEntryController;
@@ -18,4 +19,5 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('projects', ProjectController::class)->except('show');
     Route::resource('clients.users', ClientUserController::class)->only(['index', 'create', 'store', 'destroy'])->shallow();
     Route::resource('projects.time-entries', TimeEntryController::class)->except(['show', 'create'])->scoped();
+    Route::post('projects/{project}/monthly-approval', [MonthlyApprovalController::class, 'submit'])->name('projects.monthly-approval.submit');
 });

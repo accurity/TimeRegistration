@@ -95,12 +95,54 @@
             </div>
         </div>
 
-        <div class="rounded-md border border-ink-200 bg-white p-5 dark:border-dark-border dark:bg-dark-surface1">
-            <h3 class="mb-[14px] font-display text-base font-bold leading-6 text-ink-900 dark:text-dark-text1">{{ $periodLabel }}</h3>
-            <div class="grid gap-[9px] text-sm" style="font-variant-numeric: tabular-nums">
-                <div class="flex justify-between"><span class="text-ink-700 dark:text-dark-text2">Geregistreerd</span><span class="text-ink-900 dark:text-dark-text1">{{ number_format($totalHours, 2, ',', '.') }} uur</span></div>
-                <div class="flex justify-between"><span class="text-ink-700 dark:text-dark-text2">Huidig uurtarief</span><span class="text-ink-900 dark:text-dark-text1">&euro; {{ number_format($project->rate, 2, ',', '.') }}</span></div>
-                <div class="flex justify-between border-t border-ink-100 pt-[9px] font-semibold text-ink-900 dark:border-dark-border dark:text-dark-text1"><span>Excl. btw</span><span>&euro; {{ number_format($totalAmount, 2, ',', '.') }}</span></div>
+        <div class="grid gap-4">
+            <div class="rounded-md border border-ink-200 bg-white p-5 dark:border-dark-border dark:bg-dark-surface1">
+                <div class="mb-[14px] flex items-center justify-between">
+                    <h3 class="font-display text-base font-bold leading-6 text-ink-900 dark:text-dark-text1">{{ $periodLabel }}</h3>
+                    @if (! $approval)
+                        <span class="inline-block rounded-[3px] border border-status-gray-border bg-status-gray-bg px-[9px] py-[3px] text-[12px] font-semibold text-status-gray-fg dark:border-status-gray-border-dark dark:bg-status-gray-bg-dark dark:text-status-gray-fg-dark">Concept</span>
+                    @elseif ($approval->isPending())
+                        <span class="inline-block rounded-[3px] border border-status-amber-border bg-status-amber-bg px-[9px] py-[3px] text-[12px] font-semibold text-status-amber-fg dark:border-status-amber-border-dark dark:bg-status-amber-bg-dark dark:text-status-amber-fg-dark">Ter beoordeling</span>
+                    @elseif ($approval->isApproved())
+                        <span class="inline-block rounded-[3px] border border-status-green-border bg-status-green-bg px-[9px] py-[3px] text-[12px] font-semibold text-status-green-fg dark:border-status-green-border-dark dark:bg-status-green-bg-dark dark:text-status-green-fg-dark">Goedgekeurd</span>
+                    @else
+                        <span class="inline-block rounded-[3px] border border-status-red-border bg-status-red-bg px-[9px] py-[3px] text-[12px] font-semibold text-status-red-fg dark:border-status-red-border-dark dark:bg-status-red-bg-dark dark:text-status-red-fg-dark">Afgekeurd</span>
+                    @endif
+                </div>
+                <div class="grid gap-[9px] text-sm" style="font-variant-numeric: tabular-nums">
+                    <div class="flex justify-between"><span class="text-ink-700 dark:text-dark-text2">Geregistreerd</span><span class="text-ink-900 dark:text-dark-text1">{{ number_format($totalHours, 2, ',', '.') }} uur</span></div>
+                    <div class="flex justify-between"><span class="text-ink-700 dark:text-dark-text2">Huidig uurtarief</span><span class="text-ink-900 dark:text-dark-text1">&euro; {{ number_format($project->rate, 2, ',', '.') }}</span></div>
+                    <div class="flex justify-between border-t border-ink-100 pt-[9px] font-semibold text-ink-900 dark:border-dark-border dark:text-dark-text1"><span>Excl. btw</span><span>&euro; {{ number_format($totalAmount, 2, ',', '.') }}</span></div>
+                </div>
+            </div>
+
+            <div class="rounded-md border border-ink-200 bg-white p-5 dark:border-dark-border dark:bg-dark-surface1">
+                <h3 class="mb-[10px] font-display text-base font-bold leading-6 text-ink-900 dark:text-dark-text1">Volgende stap</h3>
+
+                @if ($approval && $approval->isRejected() && $approval->rejection_reason)
+                    <p class="mb-[14px] text-[13px] leading-5 text-status-red-fg dark:text-status-red-fg-dark">Afgekeurd: {{ $approval->rejection_reason }}</p>
+                @endif
+
+                @if (! $approval || $approval->isRejected())
+                    <p class="mb-[14px] text-[13px] leading-5 text-ink-700 dark:text-dark-text2">Bij versturen krijgt de klant een e-mail met een link naar het portaal.</p>
+                    <form method="POST" action="{{ route('admin.projects.monthly-approval.submit', $project) }}">
+                        @csrf
+                        <input type="hidden" name="year" value="{{ $year }}">
+                        <input type="hidden" name="month" value="{{ $month }}">
+                        <x-primary-button class="w-full justify-center">
+                            {{ $approval && $approval->isRejected() ? 'Opnieuw indienen ter goedkeuring' : 'Ter goedkeuring versturen' }}
+                        </x-primary-button>
+                    </form>
+                @elseif ($approval->isPending())
+                    <p class="text-[13px] leading-5 text-ink-700 dark:text-dark-text2">Ingediend op {{ $approval->submitted_at->translatedFormat('j F Y, H:i') }}. In afwachting van de klant.</p>
+                @else
+                    <p class="text-[13px] leading-5 text-ink-700 dark:text-dark-text2">
+                        Goedgekeurd op {{ $approval->approved_at?->translatedFormat('j F Y') }}
+                        @if ($approval->approvedBy)
+                            door {{ $approval->approvedBy->name }}
+                        @endif
+                    </p>
+                @endif
             </div>
         </div>
     </div>
