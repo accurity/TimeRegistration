@@ -10,13 +10,20 @@ use App\Models\Project;
 use App\Models\Setting;
 use App\Models\TimeEntry;
 use App\Services\InvoiceNumberService;
+use App\Services\InvoicePdfService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class InvoiceController extends Controller
 {
-    public function __construct(private readonly InvoiceNumberService $invoiceNumbers) {}
+    public function __construct(
+        private readonly InvoiceNumberService $invoiceNumbers,
+        private readonly InvoicePdfService $invoicePdfs,
+    ) {}
 
     public function index(): View
     {
@@ -166,6 +173,51 @@ class InvoiceController extends Controller
         return redirect()
             ->route('admin.invoices.index')
             ->with('status', 'Conceptfactuur verwijderd.');
+    }
+
+    public function finalize(Invoice $invoice): RedirectResponse
+    {
+        abort_unless($invoice->isDraft(), 404);
+
+        $invoice->loadMissing(['client', 'project']);
+        $settings = Setting::current();
+
+        $entries = $invoice->project->timeEntries()
+            ->whereYear('date', $invoice->period_year)
+            ->whereMonth('date', $invoice->period_month)
+            ->whereNull('invoice_id')
+            ->get();
+
+        $subtotal = $entries->sum(fn (TimeEntry $entry) => $entry->amount());
+        $vatAmount = round($subtotal * (float) $settings->default_vat_percentage / 100, 2);
+
+        DB::transaction(function () use ($invoice, $entries, $subtotal, $settings, $vatAmount) {
+            $invoice->update([
+                'subtotal' => $subtotal,
+                'vat_percentage' => $settings->default_vat_percentage,
+                'vat_amount' => $vatAmount,
+                'total' => $subtotal + $vatAmount,
+                'status' => 'final',
+            ]);
+
+            TimeEntry::query()
+                ->whereIn('id', $entries->pluck('id'))
+                ->update(['invoice_id' => $invoice->id]);
+        });
+
+        $pdfPath = $this->invoicePdfs->generate($invoice);
+        $invoice->update(['pdf_path' => $pdfPath]);
+
+        return redirect()
+            ->route('admin.invoices.index')
+            ->with('status', 'Factuur definitief gemaakt en PDF gegenereerd.');
+    }
+
+    public function download(Invoice $invoice): StreamedResponse
+    {
+        abort_unless($invoice->pdf_path && Storage::disk('invoices')->exists($invoice->pdf_path), 404);
+
+        return Storage::disk('invoices')->download($invoice->pdf_path, "{$invoice->invoice_number}.pdf");
     }
 
     private function uninvoicedAmount(Project $project, int $year, int $month): float

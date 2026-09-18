@@ -66,18 +66,22 @@
                         <div class="text-right text-ink-900 dark:text-dark-text1">{{ number_format($entry->hours, 2, ',', '.') }}</div>
                         <div class="text-ink-700 dark:text-dark-text2">{{ $entry->description }}</div>
                         <div class="text-right">
-                            <a href="{{ route('admin.projects.time-entries.edit', [$project, $entry]) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Bewerken</a>
-                            ·
-                            <button
-                                type="submit"
-                                form="delete-entry-{{ $entry->id }}"
-                                class="text-status-red-fg hover:underline dark:text-status-red-fg-dark"
-                                onclick="return confirm('Deze uren verwijderen?')"
-                            >Verwijderen</button>
-                            <form id="delete-entry-{{ $entry->id }}" method="POST" action="{{ route('admin.projects.time-entries.destroy', [$project, $entry]) }}" class="hidden">
-                                @csrf
-                                @method('DELETE')
-                            </form>
+                            @if ($entry->isLocked())
+                                <span class="text-ink-400 dark:text-dark-text3">Gefactureerd</span>
+                            @else
+                                <a href="{{ route('admin.projects.time-entries.edit', [$project, $entry]) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Bewerken</a>
+                                ·
+                                <button
+                                    type="submit"
+                                    form="delete-entry-{{ $entry->id }}"
+                                    class="text-status-red-fg hover:underline dark:text-status-red-fg-dark"
+                                    onclick="return confirm('Deze uren verwijderen?')"
+                                >Verwijderen</button>
+                                <form id="delete-entry-{{ $entry->id }}" method="POST" action="{{ route('admin.projects.time-entries.destroy', [$project, $entry]) }}" class="hidden">
+                                    @csrf
+                                    @method('DELETE')
+                                </form>
+                            @endif
                         </div>
                     </div>
                 @endforeach

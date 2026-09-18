@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class InvoiceTest extends TestCase
@@ -152,5 +153,75 @@ class InvoiceTest extends TestCase
         $deleteResponse->assertNotFound();
 
         $this->assertDatabaseHas('invoices', ['id' => $invoice->id, 'status' => 'final']);
+    }
+
+    public function test_finalizing_a_draft_freezes_amounts_locks_time_entries_and_generates_a_pdf(): void
+    {
+        Storage::fake('invoices');
+
+        $client = Client::factory()->create(['invoice_abbreviation' => 'ABC']);
+        $project = Project::factory()->create(['client_id' => $client->id, 'rate' => 100]);
+        $entry1 = TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05', 'hours' => '3.00', 'rate' => 100]);
+        $entry2 = TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-06', 'hours' => '2.00', 'rate' => 100]);
+        $otherMonthEntry = TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-08-06', 'hours' => '1.00', 'rate' => 100]);
+        MonthlyApproval::factory()->create(['project_id' => $project->id, 'year' => 2026, 'month' => 9, 'status' => 'approved', 'approved_at' => now()]);
+        $invoice = Invoice::factory()->create([
+            'client_id' => $client->id,
+            'project_id' => $project->id,
+            'period_year' => 2026,
+            'period_month' => 9,
+            'invoice_number' => '1012620-ABC',
+            'invoice_date' => '2026-10-01',
+            'status' => 'draft',
+        ]);
+
+        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/finalize");
+
+        $response->assertSessionHasNoErrors();
+        $response->assertRedirect(route('admin.invoices.index'));
+
+        $invoice->refresh();
+        $this->assertSame('final', $invoice->status);
+        $this->assertSame('500.00', $invoice->subtotal);
+        $this->assertSame('105.00', $invoice->vat_amount);
+        $this->assertSame('605.00', $invoice->total);
+        $this->assertNotNull($invoice->pdf_path);
+
+        $this->assertSame($invoice->id, $entry1->fresh()->invoice_id);
+        $this->assertSame($invoice->id, $entry2->fresh()->invoice_id);
+        $this->assertNull($otherMonthEntry->fresh()->invoice_id);
+
+        Storage::disk('invoices')->assertExists($invoice->pdf_path);
+        $this->assertSame('2026/1012620-ABC.pdf', $invoice->pdf_path);
+    }
+
+    public function test_finalize_is_blocked_for_a_non_draft_invoice(): void
+    {
+        $invoice = Invoice::factory()->final()->create();
+
+        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/finalize");
+
+        $response->assertNotFound();
+    }
+
+    public function test_admin_can_download_the_generated_pdf(): void
+    {
+        Storage::fake('invoices');
+        Storage::disk('invoices')->put('2026/TEST-1.pdf', '%PDF-1.4 fake content');
+        $invoice = Invoice::factory()->final()->create(['pdf_path' => '2026/TEST-1.pdf']);
+
+        $response = $this->actingAs($this->admin())->get("/admin/invoices/{$invoice->id}/download");
+
+        $response->assertOk();
+        $response->assertHeader('content-type', 'application/pdf');
+    }
+
+    public function test_downloading_is_not_available_before_finalizing(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => 'draft', 'pdf_path' => null]);
+
+        $response = $this->actingAs($this->admin())->get("/admin/invoices/{$invoice->id}/download");
+
+        $response->assertNotFound();
     }
 }
