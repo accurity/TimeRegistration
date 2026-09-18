@@ -224,4 +224,90 @@ class InvoiceTest extends TestCase
 
         $response->assertNotFound();
     }
+
+    public function test_admin_can_cancel_a_final_invoice(): void
+    {
+        $invoice = Invoice::factory()->final()->create(['invoice_number' => '1012620-ABC', 'pdf_path' => '2026/1012620-ABC.pdf']);
+
+        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/cancel");
+
+        $response->assertSessionHasNoErrors();
+        $invoice->refresh();
+        $this->assertSame('cancelled', $invoice->status);
+        $this->assertSame('1012620-ABC', $invoice->invoice_number);
+        $this->assertSame('2026/1012620-ABC.pdf', $invoice->pdf_path);
+    }
+
+    public function test_a_draft_invoice_cannot_be_cancelled(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => 'draft']);
+
+        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/cancel");
+
+        $response->assertNotFound();
+    }
+
+    public function test_a_cancelled_invoice_cannot_be_cancelled_again(): void
+    {
+        $invoice = Invoice::factory()->cancelled()->create();
+
+        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/cancel");
+
+        $response->assertNotFound();
+    }
+
+    public function test_cancelling_an_invoice_does_not_unlock_its_time_entries(): void
+    {
+        $project = Project::factory()->create();
+        $invoice = Invoice::factory()->final()->create(['project_id' => $project->id]);
+        $entry = TimeEntry::factory()->create(['project_id' => $project->id]);
+        TimeEntry::query()->whereKey($entry->id)->update(['invoice_id' => $invoice->id]);
+
+        $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/cancel");
+
+        $this->assertSame($invoice->id, $entry->fresh()->invoice_id);
+    }
+
+    public function test_admin_can_mark_a_final_invoice_as_paid(): void
+    {
+        $invoice = Invoice::factory()->final()->create();
+
+        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/mark-paid");
+
+        $response->assertSessionHasNoErrors();
+        $invoice->refresh();
+        $this->assertSame('paid', $invoice->payment_status);
+        $this->assertNotNull($invoice->paid_at);
+    }
+
+    public function test_a_draft_invoice_cannot_be_marked_paid(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => 'draft']);
+
+        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/mark-paid");
+
+        $response->assertNotFound();
+    }
+
+    public function test_a_cancelled_invoice_cannot_be_marked_paid(): void
+    {
+        $invoice = Invoice::factory()->cancelled()->create();
+
+        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/mark-paid");
+
+        $response->assertNotFound();
+    }
+
+    public function test_the_overview_shows_a_distinct_label_for_each_status_and_payment_combination(): void
+    {
+        Invoice::factory()->create(['status' => 'draft', 'invoice_number' => 'DRAFT-1', 'invoice_date' => '2026-10-04']);
+        Invoice::factory()->final()->create(['invoice_number' => 'OPEN-1', 'payment_status' => 'open', 'invoice_date' => '2026-10-03']);
+        Invoice::factory()->final()->create(['invoice_number' => 'PAID-1', 'payment_status' => 'paid', 'paid_at' => now(), 'invoice_date' => '2026-10-02']);
+        Invoice::factory()->cancelled()->create(['invoice_number' => 'CANCELLED-1', 'invoice_date' => '2026-10-01']);
+
+        $response = $this->actingAs($this->admin())->get('/admin/invoices');
+
+        $response->assertOk();
+        $response->assertSeeInOrder(['Concept', 'Openstaand', 'Betaald', 'Geannuleerd']);
+    }
 }
