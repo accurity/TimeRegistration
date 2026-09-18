@@ -70,4 +70,13 @@
             </div>
         </form>
     </div>
+
+    <div class="mt-[14px] max-w-2xl rounded-md border border-ink-200 bg-white px-[22px] py-5 dark:border-dark-border dark:bg-dark-surface1">
+        <h3 class="mb-1 font-display text-base font-bold leading-6 text-ink-900 dark:text-dark-text1">Definitief maken</h3>
+        <p class="mb-[14px] text-[13px] leading-5 text-ink-700 dark:text-dark-text2">De bedragen worden bevroren, de uren van deze periode worden vergrendeld en de PDF wordt gegenereerd. Dit kan daarna niet meer worden teruggedraaid (alleen annuleren).</p>
+        <form method="POST" action="{{ route('admin.invoices.finalize', $invoice) }}" onsubmit="return confirm('Deze factuur definitief maken? De uren worden vergrendeld.')">
+            @csrf
+            <x-primary-button>Definitief maken</x-primary-button>
+        </form>
+    </div>
 </x-admin-layout>

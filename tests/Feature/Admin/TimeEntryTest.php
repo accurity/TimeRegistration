@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\TimeEntry;
 use App\Models\User;
@@ -161,5 +162,35 @@ class TimeEntryTest extends TestCase
 
         $response->assertRedirect();
         $this->assertDatabaseMissing('time_entries', ['id' => $entry->id]);
+    }
+
+    public function test_a_locked_time_entry_cannot_be_edited(): void
+    {
+        $project = Project::factory()->create();
+        $invoice = Invoice::factory()->create(['project_id' => $project->id]);
+        $entry = TimeEntry::factory()->create(['project_id' => $project->id, 'invoice_id' => $invoice->id]);
+
+        $editResponse = $this->actingAs($this->admin())->get("/admin/projects/{$project->id}/time-entries/{$entry->id}/edit");
+        $editResponse->assertForbidden();
+
+        $updateResponse = $this->actingAs($this->admin())->put("/admin/projects/{$project->id}/time-entries/{$entry->id}", [
+            'date' => '2026-09-15',
+            'hours' => '5',
+            'description' => 'Poging tot wijzigen',
+        ]);
+        $updateResponse->assertForbidden();
+        $this->assertDatabaseHas('time_entries', ['id' => $entry->id, 'description' => $entry->description]);
+    }
+
+    public function test_a_locked_time_entry_cannot_be_deleted(): void
+    {
+        $project = Project::factory()->create();
+        $invoice = Invoice::factory()->create(['project_id' => $project->id]);
+        $entry = TimeEntry::factory()->create(['project_id' => $project->id, 'invoice_id' => $invoice->id]);
+
+        $response = $this->actingAs($this->admin())->delete("/admin/projects/{$project->id}/time-entries/{$entry->id}");
+
+        $response->assertForbidden();
+        $this->assertDatabaseHas('time_entries', ['id' => $entry->id]);
     }
 }

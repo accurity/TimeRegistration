@@ -67,6 +67,8 @@ class TimeEntryController extends Controller
 
     public function edit(Project $project, TimeEntry $timeEntry): View
     {
+        abort_if($timeEntry->isLocked(), 403, 'Deze uren zijn al gefactureerd en kunnen niet meer worden gewijzigd.');
+
         return view('admin.projects.time-entries.edit', [
             'project' => $project,
             'timeEntry' => $timeEntry,
@@ -75,6 +77,8 @@ class TimeEntryController extends Controller
 
     public function update(UpdateTimeEntryRequest $request, Project $project, TimeEntry $timeEntry): RedirectResponse
     {
+        abort_if($timeEntry->isLocked(), 403, 'Deze uren zijn al gefactureerd en kunnen niet meer worden gewijzigd.');
+
         $timeEntry->update($request->validated());
 
         return redirect()
@@ -88,6 +92,8 @@ class TimeEntryController extends Controller
 
     public function destroy(Project $project, TimeEntry $timeEntry): RedirectResponse
     {
+        abort_if($timeEntry->isLocked(), 403, 'Deze uren zijn al gefactureerd en kunnen niet meer worden gewijzigd.');
+
         $year = $timeEntry->date->year;
         $month = $timeEntry->date->month;
 

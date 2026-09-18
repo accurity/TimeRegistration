@@ -34,8 +34,18 @@ class TimeEntry extends Model
         return $this->belongsTo(Project::class);
     }
 
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class);
+    }
+
     public function amount(): float
     {
         return (float) $this->hours * (float) $this->rate;
+    }
+
+    public function isLocked(): bool
+    {
+        return $this->invoice_id !== null;
     }
 }

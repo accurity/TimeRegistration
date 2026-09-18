@@ -41,6 +41,8 @@
                 <div class="text-right">
                     @if ($invoice->isDraft())
                         <a href="{{ route('admin.invoices.edit', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Bewerken</a>
+                    @elseif ($invoice->pdf_path)
+                        <a href="{{ route('admin.invoices.download', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">PDF</a>
                     @endif
                 </div>
             </div>
