@@ -39,7 +39,7 @@
     </form>
 
     <div class="overflow-hidden rounded-md border border-ink-200 bg-white dark:border-dark-border dark:bg-dark-surface1">
-        <div class="grid grid-cols-[1.6fr_1.2fr_110px_120px_140px] gap-3 border-b border-ink-200 bg-ink-50 px-[22px] py-[10px] text-[11px] font-semibold uppercase tracking-[.1em] text-ink-500 dark:border-dark-border dark:bg-dark-surface2 dark:text-dark-text2">
+        <div class="grid grid-cols-[1.5fr_1.1fr_100px_120px_170px] gap-3 border-b border-ink-200 bg-ink-50 px-[22px] py-[10px] text-[11px] font-semibold uppercase tracking-[.1em] text-ink-500 dark:border-dark-border dark:bg-dark-surface2 dark:text-dark-text2">
             <div>Project</div>
             <div>Klant</div>
             <div class="text-right">Tarief</div>
@@ -49,7 +49,7 @@
 
         @forelse ($projects as $project)
             <div @class([
-                'grid grid-cols-[1.6fr_1.2fr_110px_120px_140px] items-center gap-3 border-b border-ink-100 px-[22px] py-3 text-sm dark:border-dark-border',
+                'grid grid-cols-[1.5fr_1.1fr_100px_120px_170px] items-center gap-3 border-b border-ink-100 px-[22px] py-3 text-sm dark:border-dark-border',
                 'bg-ink-50 dark:bg-dark-surface2' => $loop->even,
                 'last:border-b-0' => true,
             ])>
@@ -64,6 +64,8 @@
                     @endif
                 </div>
                 <div class="text-right">
+                    <a href="{{ route('admin.projects.time-entries.index', $project) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Uren</a>
+                    ·
                     <a href="{{ route('admin.projects.edit', $project) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Bewerken</a>
                 </div>
             </div>

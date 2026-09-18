@@ -4,6 +4,7 @@ namespace Tests\Feature\Admin;
 
 use App\Models\Client;
 use App\Models\Project;
+use App\Models\TimeEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -141,5 +142,16 @@ class ProjectTest extends TestCase
 
         $response->assertRedirect(route('admin.projects.index'));
         $this->assertDatabaseMissing('projects', ['id' => $project->id]);
+    }
+
+    public function test_a_project_with_time_entries_cannot_be_deleted(): void
+    {
+        $project = Project::factory()->create();
+        TimeEntry::factory()->create(['project_id' => $project->id]);
+
+        $response = $this->actingAs($this->admin())->delete("/admin/projects/{$project->id}");
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('projects', ['id' => $project->id]);
     }
 }

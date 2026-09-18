@@ -68,7 +68,10 @@ class ProjectController extends Controller
 
     public function destroy(Project $project): RedirectResponse
     {
-        // TODO: block deletion of projects with linked time entries once issue #6 adds that relation.
+        if ($project->timeEntries()->exists()) {
+            return back()->with('error', 'Dit project heeft nog geregistreerde uren en kan niet verwijderd worden.');
+        }
+
         $project->delete();
 
         return redirect()
