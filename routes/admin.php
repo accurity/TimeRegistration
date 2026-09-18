@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\ClientController;
+use App\Http\Controllers\Admin\ClientUserController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -14,4 +15,5 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     Route::resource('clients', ClientController::class)->except('show');
     Route::resource('projects', ProjectController::class)->except('show');
+    Route::resource('clients.users', ClientUserController::class)->only(['index', 'create', 'store', 'destroy'])->shallow();
 });

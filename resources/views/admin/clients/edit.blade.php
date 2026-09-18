@@ -1,6 +1,7 @@
 <x-admin-layout>
-    <div class="mb-[22px]">
-        <h1 class="mb-1 font-display text-[28px] font-bold leading-9 text-ink-900 dark:text-dark-text1">Klant bewerken</h1>
+    <div class="mb-[22px] flex items-end justify-between">
+        <h1 class="font-display text-[28px] font-bold leading-9 text-ink-900 dark:text-dark-text1">Klant bewerken</h1>
+        <a href="{{ route('admin.clients.users.index', $client) }}" class="text-sm font-semibold text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Contactpersonen beheren</a>
     </div>
 
     <div class="max-w-2xl rounded-md border border-ink-200 bg-white dark:border-dark-border dark:bg-dark-surface1">
