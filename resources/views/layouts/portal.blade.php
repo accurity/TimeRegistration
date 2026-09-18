@@ -20,12 +20,18 @@
                     </a>
 
                     <div class="flex items-center gap-5 text-sm text-ink-700 dark:text-dark-text2">
-                        <span
+                        <a
+                            href="{{ route('portal.dashboard') }}"
                             @class([
-                                'font-semibold text-brand-800 dark:text-brand-darkhover' => request()->routeIs('portal.dashboard'),
+                                'font-semibold text-brand-800 dark:text-brand-darkhover' => request()->routeIs('portal.dashboard', 'portal.approvals.show'),
                             ])
-                        >Uren</span>
-                        <span>Mijn facturen</span>
+                        >Uren</a>
+                        <a
+                            href="{{ route('portal.invoices.index') }}"
+                            @class([
+                                'font-semibold text-brand-800 dark:text-brand-darkhover' => request()->routeIs('portal.invoices.*'),
+                            ])
+                        >Mijn facturen</a>
                         <span class="text-ink-300 dark:text-dark-border">|</span>
                         <span class="text-[13px]">{{ auth()->user()->client?->name ?? '—' }}</span>
                         <x-theme-toggle />
