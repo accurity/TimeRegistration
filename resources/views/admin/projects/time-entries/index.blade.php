@@ -126,7 +126,7 @@
                         </x-primary-button>
                     </form>
                 @elseif ($approval->isPending())
-                    <p class="text-[13px] leading-5 text-ink-700 dark:text-dark-text2">Ingediend op {{ $approval->submitted_at->translatedFormat('j F Y, H:i') }}. In afwachting van de klant.</p>
+                    <p class="text-[13px] leading-5 text-ink-700 dark:text-dark-text2">Ingediend op {{ $approval->submitted_at?->translatedFormat('j F Y, H:i') }}. In afwachting van de klant.</p>
                 @else
                     <p class="text-[13px] leading-5 text-ink-700 dark:text-dark-text2">
                         Goedgekeurd op {{ $approval->approved_at?->translatedFormat('j F Y') }}
