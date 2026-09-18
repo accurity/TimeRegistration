@@ -26,6 +26,8 @@
                             ])
                         >Uren</span>
                         <span>Mijn facturen</span>
+                        <span class="text-ink-300 dark:text-dark-border">|</span>
+                        <span class="text-[13px]">{{ auth()->user()->client?->name ?? '—' }}</span>
                         <x-theme-toggle />
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
