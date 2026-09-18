@@ -42,6 +42,7 @@
                     </div>
 
                     <div class="flex items-center gap-4 text-[13px] text-ink-700 dark:text-dark-text2">
+                        <a href="{{ route('admin.settings.edit') }}" @class(['text-brand-800 font-semibold dark:text-brand-darkhover' => request()->routeIs('admin.settings.*'), 'hover:text-brand-800 dark:hover:text-brand-darkhover' => ! request()->routeIs('admin.settings.*')])>Instellingen</a>
                         <x-theme-toggle />
                         <span>{{ auth()->user()->name }} — Accurity</span>
                         <form method="POST" action="{{ route('logout') }}">
