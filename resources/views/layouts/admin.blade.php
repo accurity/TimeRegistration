@@ -22,26 +22,31 @@
 
                         <nav class="flex h-[58px] items-center gap-6 text-sm">
                             @foreach ([
-                                ['admin.dashboard', 'Dashboard'],
-                                [null, 'Klanten'],
-                                [null, 'Projecten'],
-                                [null, 'Uren'],
-                                [null, 'Facturen'],
-                            ] as [$routeName, $label])
-                                <span
-                                    @class([
-                                        'flex h-[58px] items-center',
-                                        'border-b-2 border-brand-600 font-semibold text-brand-800 dark:border-brand-darkfg dark:text-brand-darkhover' => $routeName && request()->routeIs($routeName),
-                                        'text-ink-700 dark:text-dark-text2' => ! ($routeName && request()->routeIs($routeName)),
-                                    ])
-                                >
-                                    {{ $label }}
-                                </span>
+                                ['admin.dashboard', 'admin.dashboard', 'Dashboard'],
+                                ['admin.clients.index', 'admin.clients.*', 'Klanten'],
+                                [null, null, 'Projecten'],
+                                [null, null, 'Uren'],
+                                [null, null, 'Facturen'],
+                            ] as [$routeName, $activePattern, $label])
+                                @php $isActive = $activePattern && request()->routeIs($activePattern); @endphp
+                                @if ($routeName)
+                                    <a
+                                        href="{{ route($routeName) }}"
+                                        @class([
+                                            'flex h-[58px] items-center',
+                                            'border-b-2 border-brand-600 font-semibold text-brand-800 dark:border-brand-darkfg dark:text-brand-darkhover' => $isActive,
+                                            'text-ink-700 dark:text-dark-text2' => ! $isActive,
+                                        ])
+                                    >{{ $label }}</a>
+                                @else
+                                    <span class="flex h-[58px] items-center text-ink-700 dark:text-dark-text2">{{ $label }}</span>
+                                @endif
                             @endforeach
                         </nav>
                     </div>
 
                     <div class="flex items-center gap-4 text-[13px] text-ink-700 dark:text-dark-text2">
+                        <a href="{{ route('admin.settings.edit') }}" @class(['text-brand-800 font-semibold dark:text-brand-darkhover' => request()->routeIs('admin.settings.*'), 'hover:text-brand-800 dark:hover:text-brand-darkhover' => ! request()->routeIs('admin.settings.*')])>Instellingen</a>
                         <x-theme-toggle />
                         <span>{{ auth()->user()->name }} — Accurity</span>
                         <form method="POST" action="{{ route('logout') }}">
