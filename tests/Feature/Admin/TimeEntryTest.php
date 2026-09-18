@@ -45,6 +45,17 @@ class TimeEntryTest extends TestCase
         $response->assertDontSee('Augustus werk');
     }
 
+    public function test_entries_are_shown_chronologically_regardless_of_the_order_they_were_entered_in(): void
+    {
+        $project = Project::factory()->create();
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-16', 'description' => 'Later in de maand']);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-11', 'description' => 'Eerder in de maand, later ingevoerd']);
+
+        $response = $this->actingAs($this->admin())->get("/admin/projects/{$project->id}/time-entries?year=2026&month=9");
+
+        $response->assertSeeInOrder(['Eerder in de maand, later ingevoerd', 'Later in de maand']);
+    }
+
     public function test_client_role_cannot_access_time_entries(): void
     {
         $project = Project::factory()->create();
