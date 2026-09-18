@@ -19,7 +19,7 @@
                 </div>
                 <div>
                     <x-input-label for="hours" value="Uren" />
-                    <x-text-input id="hours" name="hours" type="number" step="0.25" min="0.01" max="24" class="block w-full" :value="old('hours', $timeEntry->hours)" required />
+                    <x-text-input id="hours" name="hours" type="number" step="0.25" min="0" max="24" class="block w-full" :value="old('hours', $timeEntry->hours)" required />
                     <x-input-error :messages="$errors->get('hours')" class="mt-2" />
                 </div>
             </div>
