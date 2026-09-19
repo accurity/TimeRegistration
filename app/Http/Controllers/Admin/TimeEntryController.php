@@ -25,7 +25,7 @@ class TimeEntryController extends Controller
         $entries = $project->timeEntries()
             ->whereYear('date', $year)
             ->whereMonth('date', $month)
-            ->orderByDesc('date')
+            ->orderBy('date')
             ->get();
 
         $weeks = $entries->groupBy(fn (TimeEntry $entry) => $entry->date->isoWeek());
