@@ -77,7 +77,7 @@ class TimeEntryTest extends TestCase
         ]);
 
         $response->assertSessionHasNoErrors();
-        $response->assertRedirect(route('admin.projects.time-entries.index', [$project, 'year' => 2026, 'month' => 9]));
+        $response->assertRedirect(route('admin.projects.time-entries.index', [$project, 'year' => 2026, 'month' => 9, 'view' => 'list']));
 
         $this->assertDatabaseHas('time_entries', [
             'project_id' => $project->id,

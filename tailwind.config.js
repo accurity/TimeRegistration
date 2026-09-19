@@ -46,6 +46,11 @@ export default {
                     text1: '#E6EDF1',
                     text2: '#9FB1BC',
                     text3: '#6E818D',
+                    text4: '#5D6E79',
+                    subtle: '#101A20',
+                    subtleborder: '#212F37',
+                    muted: '#111A1F',
+                    mutedborder: '#253039',
                 },
                 status: {
                     'green-fg': '#1E7A5F',
