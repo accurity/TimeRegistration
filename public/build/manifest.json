@@ -1,0 +1,29 @@
+{
+  "resources/css/app.css": {
+    "file": "assets/app-B6GOYpRv.css",
+    "name": "app",
+    "names": [
+      "app.css"
+    ],
+    "src": "resources/css/app.css",
+    "isEntry": true,
+    "assets": [
+      "assets/Bitter-wBWmOzc4.woff2",
+      "assets/Calibri-BYRW4nG6.woff2"
+    ]
+  },
+  "resources/fonts/Bitter.woff2": {
+    "file": "assets/Bitter-wBWmOzc4.woff2",
+    "src": "resources/fonts/Bitter.woff2"
+  },
+  "resources/fonts/Calibri.woff2": {
+    "file": "assets/Calibri-BYRW4nG6.woff2",
+    "src": "resources/fonts/Calibri.woff2"
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-yATHOtPb.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true
+  }
+}
