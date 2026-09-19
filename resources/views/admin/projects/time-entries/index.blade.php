@@ -37,7 +37,7 @@
                     </div>
                     <div>
                         <x-input-label for="hours" value="Uren" />
-                        <x-text-input id="hours" name="hours" type="number" step="0.25" min="0.01" max="24" class="block w-full" value="{{ old('hours') }}" required />
+                        <x-text-input id="hours" name="hours" type="number" step="0.25" min="0" max="24" class="block w-full" value="{{ old('hours') }}" required />
                     </div>
                     <div>
                         <x-input-label for="description" value="Omschrijving" />
