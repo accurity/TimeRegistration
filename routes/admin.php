@@ -20,6 +20,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::resource('projects', ProjectController::class)->except('show');
     Route::resource('clients.users', ClientUserController::class)->only(['index', 'create', 'store', 'destroy'])->shallow();
     Route::resource('projects.time-entries', TimeEntryController::class)->except(['show', 'create'])->scoped();
+    Route::put('projects/{project}/time-entries/days/{date}', [TimeEntryController::class, 'saveDay'])
+        ->where('date', '[0-9]{4}-[0-9]{2}-[0-9]{2}')
+        ->name('projects.time-entries.days.update');
     Route::post('projects/{project}/monthly-approval', [MonthlyApprovalController::class, 'submit'])->name('projects.monthly-approval.submit');
     Route::resource('invoices', InvoiceController::class)->except('show');
     Route::post('invoices/{invoice}/finalize', [InvoiceController::class, 'finalize'])->name('invoices.finalize');
