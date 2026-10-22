@@ -67,6 +67,43 @@ class DashboardTest extends TestCase
         $response->assertSee('Goedgekeurd');
     }
 
+    public function test_submissions_for_earlier_months_are_listed_with_a_link(): void
+    {
+        $client = Client::factory()->create();
+        $project = Project::factory()->create(['client_id' => $client->id]);
+
+        foreach (range(1, 6) as $month) {
+            MonthlyApproval::factory()->create(['project_id' => $project->id, 'year' => 2026, 'month' => $month, 'status' => 'pending', 'submitted_at' => now()]);
+        }
+
+        $response = $this->actingAs($this->clientUserFor($client))->get('/portal');
+
+        $response->assertOk();
+        $response->assertDontSee('Nog geen uren ingediend');
+
+        foreach (range(1, 6) as $month) {
+            $response->assertSee(e(route('portal.approvals.show', [$project, 2026, $month])), false);
+        }
+    }
+
+    public function test_pending_submissions_are_listed_before_decided_ones_newest_first(): void
+    {
+        $client = Client::factory()->create();
+        $project = Project::factory()->create(['client_id' => $client->id]);
+        MonthlyApproval::factory()->create(['project_id' => $project->id, 'year' => 2026, 'month' => 5, 'status' => 'approved']);
+        MonthlyApproval::factory()->create(['project_id' => $project->id, 'year' => 2026, 'month' => 1, 'status' => 'pending', 'submitted_at' => now()]);
+        MonthlyApproval::factory()->create(['project_id' => $project->id, 'year' => 2026, 'month' => 3, 'status' => 'pending', 'submitted_at' => now()]);
+
+        $response = $this->actingAs($this->clientUserFor($client))->get('/portal');
+
+        $response->assertOk();
+        $response->assertSeeInOrder([
+            e(route('portal.approvals.show', [$project, 2026, 3])),
+            e(route('portal.approvals.show', [$project, 2026, 1])),
+            e(route('portal.approvals.show', [$project, 2026, 5])),
+        ], false);
+    }
+
     public function test_only_the_clients_own_open_invoices_are_shown(): void
     {
         $client = Client::factory()->create();
