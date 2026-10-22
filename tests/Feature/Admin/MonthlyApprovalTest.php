@@ -48,6 +48,16 @@ class MonthlyApprovalTest extends TestCase
         });
     }
 
+    public function test_ready_for_approval_mail_links_to_the_submitted_month(): void
+    {
+        $project = Project::factory()->create();
+        $approval = MonthlyApproval::factory()->create(['project_id' => $project->id, 'year' => 2026, 'month' => 3, 'status' => 'pending']);
+
+        $mail = new HoursReadyForApprovalMail($project, $approval);
+
+        $mail->assertSeeInHtml(route('portal.approvals.show', [$project, 2026, 3]));
+    }
+
     public function test_client_role_cannot_submit_hours_for_approval(): void
     {
         $project = Project::factory()->create();
