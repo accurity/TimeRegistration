@@ -19,6 +19,19 @@ class DashboardTest extends TestCase
         return User::factory()->create(['role' => 'client', 'client_id' => $client->id]);
     }
 
+    public function test_the_approval_overview_is_hidden_for_a_client_without_required_approval(): void
+    {
+        $client = Client::factory()->withoutApproval()->create();
+        Project::factory()->create(['client_id' => $client->id, 'name' => 'Website migratie']);
+
+        $response = $this->actingAs($this->clientUserFor($client))->get('/portal');
+
+        $response->assertOk();
+        $response->assertDontSee('Website migratie');
+        $response->assertDontSee('Nog geen uren ingediend');
+        $response->assertSee('Geen openstaande facturen.');
+    }
+
     public function test_the_dashboard_shows_no_errors_and_empty_states_for_a_fresh_account(): void
     {
         $client = Client::factory()->create();

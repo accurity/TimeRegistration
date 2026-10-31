@@ -10,7 +10,7 @@
     $weekHoursMap = collect($calendarWeeks)->mapWithKeys(fn (array $week) => [$week['number'] => $week['hours']]);
 @endphp
 
-@if ($approval && $approval->isRejected() && $approval->rejection_reason)
+@if ($project->client->requires_approval && $approval && $approval->isRejected() && $approval->rejection_reason)
     <div class="mb-4 rounded-[3px] border border-status-red-border bg-status-red-bg px-4 py-3 text-sm text-status-red-fg dark:border-status-red-border-dark dark:bg-status-red-bg-dark dark:text-status-red-fg-dark">Afgekeurd: {{ $approval->rejection_reason }}</div>
 @endif
 
@@ -124,7 +124,9 @@
 
     <div class="flex items-center justify-between gap-6 border-t border-ink-200 bg-ink-50 px-5 py-3.5 dark:border-dark-border dark:bg-dark-surface2">
         <div class="flex items-center gap-[26px] text-sm text-ink-700 dark:text-dark-text2" style="font-variant-numeric: tabular-nums">
-            <x-approval-status-badge :status="$approval->status ?? 'draft'" />
+            @if ($project->client->requires_approval)
+                <x-approval-status-badge :status="$approval->status ?? 'draft'" />
+            @endif
             <span>Geregistreerd <strong class="font-semibold text-ink-900 dark:text-dark-text1" x-text="formatHours(monthHours) + ' uur'">{{ number_format($totalHours, 2, ',', '.') }} uur</strong></span>
             <span>Huidig uurtarief <strong class="font-semibold text-ink-900 dark:text-dark-text1">&euro; {{ number_format($project->rate, 2, ',', '.') }}</strong></span>
             <span>Excl. btw <strong class="font-semibold text-ink-900 dark:text-dark-text1" x-text="formatAmount(monthAmount)">&euro; {{ number_format($totalAmount, 2, ',', '.') }}</strong></span>

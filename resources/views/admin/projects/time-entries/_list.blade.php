@@ -75,7 +75,9 @@
         <div class="rounded-md border border-ink-200 bg-white p-5 dark:border-dark-border dark:bg-dark-surface1">
             <div class="mb-[14px] flex items-center justify-between">
                 <h3 class="font-display text-base font-bold leading-6 text-ink-900 dark:text-dark-text1">{{ $periodLabel }}</h3>
-                <x-approval-status-badge :status="$approval->status ?? 'draft'" />
+                @if ($project->client->requires_approval)
+                    <x-approval-status-badge :status="$approval->status ?? 'draft'" />
+                @endif
             </div>
             <div class="grid gap-[9px] text-sm" style="font-variant-numeric: tabular-nums">
                 <div class="flex justify-between"><span class="text-ink-700 dark:text-dark-text2">Geregistreerd</span><span class="text-ink-900 dark:text-dark-text1">{{ number_format($totalHours, 2, ',', '.') }} uur</span></div>
@@ -87,11 +89,14 @@
         <div class="rounded-md border border-ink-200 bg-white p-5 dark:border-dark-border dark:bg-dark-surface1">
             <h3 class="mb-[10px] font-display text-base font-bold leading-6 text-ink-900 dark:text-dark-text1">Volgende stap</h3>
 
-            @if ($approval && $approval->isRejected() && $approval->rejection_reason)
+            @if ($project->client->requires_approval && $approval && $approval->isRejected() && $approval->rejection_reason)
                 <p class="mb-[14px] text-[13px] leading-5 text-status-red-fg dark:text-status-red-fg-dark">Afgekeurd: {{ $approval->rejection_reason }}</p>
             @endif
 
-            @if (! $approval || $approval->isRejected())
+            @if (! $project->client->requires_approval)
+                <p class="mb-[14px] text-[13px] leading-5 text-ink-700 dark:text-dark-text2">Voor deze klant is geen goedkeuring nodig.</p>
+                <a href="{{ route('admin.invoices.create', ['project_id' => $project->id, 'year' => $year, 'month' => $month]) }}" class="inline-flex w-full items-center justify-center rounded-[3px] border border-brand-600 bg-brand-600 px-[18px] py-[9px] text-sm font-semibold text-white hover:border-brand-800 hover:bg-brand-800">Factuur opstellen</a>
+            @elseif (! $approval || $approval->isRejected())
                 <p class="mb-[14px] text-[13px] leading-5 text-ink-700 dark:text-dark-text2">Bij versturen krijgt de klant een e-mail met een link naar het portaal.</p>
                 <form method="POST" action="{{ route('admin.projects.monthly-approval.submit', $project) }}">
                     @csrf

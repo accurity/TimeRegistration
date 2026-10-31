@@ -57,6 +57,36 @@ class ClientTest extends TestCase
         ]);
     }
 
+    public function test_a_new_client_requires_approval_by_default(): void
+    {
+        $this->actingAs($this->admin())->post('/admin/clients', [
+            'name' => 'Bouwgroep Vermeer',
+            'invoice_abbreviation' => 'VER',
+            'address' => 'Havenweg 44',
+            'postal_code' => '3421 AB',
+            'city' => 'Nieuwegein',
+        ]);
+
+        $this->assertDatabaseHas('clients', ['name' => 'Bouwgroep Vermeer', 'requires_approval' => true]);
+    }
+
+    public function test_admin_can_turn_off_required_approval_for_a_client(): void
+    {
+        $client = Client::factory()->create();
+
+        $response = $this->actingAs($this->admin())->put("/admin/clients/{$client->id}", [
+            'name' => $client->name,
+            'invoice_abbreviation' => $client->invoice_abbreviation,
+            'address' => $client->address,
+            'postal_code' => $client->postal_code,
+            'city' => $client->city,
+            'requires_approval' => '0',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertFalse($client->fresh()->requires_approval);
+    }
+
     public function test_invoice_abbreviation_is_required_and_unique(): void
     {
         Client::factory()->create(['invoice_abbreviation' => 'VER']);

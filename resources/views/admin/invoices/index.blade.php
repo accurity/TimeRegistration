@@ -20,7 +20,13 @@
             <div>Factuur</div>
             <div>Klant</div>
             <div>Project</div>
-            <div>Periode</div>
+            <div>
+                <a
+                    href="{{ route('admin.invoices.index', ['direction' => $periodDirection === 'asc' ? 'desc' : 'asc']) }}"
+                    aria-label="Periode {{ $periodDirection === 'asc' ? 'aflopend' : 'oplopend' }} sorteren"
+                    class="hover:text-ink-900 dark:hover:text-dark-text1"
+                >Periode {!! $periodDirection === 'asc' ? '&uarr;' : '&darr;' !!}</a>
+            </div>
             <div class="text-right">Bedrag</div>
             <div>Status</div>
             <div></div>
@@ -38,35 +44,30 @@
                 <div class="text-ink-700 dark:text-dark-text2">{{ \Illuminate\Support\Carbon::createFromDate($invoice->period_year, $invoice->period_month, 1)->translatedFormat('M Y') }}</div>
                 <div class="text-right text-ink-900 dark:text-dark-text1">&euro; {{ number_format($invoice->total, 2, ',', '.') }}</div>
                 <div><x-invoice-status-badge :status="$invoice->status" :payment-status="$invoice->payment_status" /></div>
-                <div class="text-right space-x-2 whitespace-nowrap">
+                <div class="flex items-center justify-end gap-2 whitespace-nowrap">
                     @if ($invoice->isDraft())
                         <a href="{{ route('admin.invoices.edit', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Bewerken</a>
-                    @else
-                        @if ($invoice->pdf_path)
-                            <a href="{{ route('admin.invoices.download', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">PDF</a>
-                        @endif
-                        @if ($invoice->isFinal())
-                            @if (! $invoice->isPaid())
-                                <button
-                                    type="submit"
-                                    form="mark-paid-invoice-{{ $invoice->id }}"
-                                    class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover"
-                                >Betaald</button>
-                                <form id="mark-paid-invoice-{{ $invoice->id }}" method="POST" action="{{ route('admin.invoices.mark-paid', $invoice) }}" class="hidden">
-                                    @csrf
-                                </form>
-                            @endif
-                            <button
-                                type="submit"
-                                form="cancel-invoice-{{ $invoice->id }}"
-                                class="text-status-red-fg hover:underline dark:text-status-red-fg-dark"
-                                onclick="return confirm('Deze factuur annuleren?')"
-                            >Annuleren</button>
-                            <form id="cancel-invoice-{{ $invoice->id }}" method="POST" action="{{ route('admin.invoices.cancel', $invoice) }}" class="hidden">
-                                @csrf
-                            </form>
-                        @endif
+                    @elseif ($invoice->pdf_path)
+                        <a href="{{ route('admin.invoices.download', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">PDF</a>
                     @endif
+                    <form method="POST" action="{{ route('admin.invoices.status.update', $invoice) }}">
+                        @csrf
+                        @method('PATCH')
+                        <x-select-input
+                            name="status"
+                            aria-label="Status van factuur {{ $invoice->invoice_number }}"
+                            class="py-[5px] pr-8"
+                            data-current="{{ $invoice->managedStatus() }}"
+                            onchange="const message = this.selectedOptions[0].dataset.confirm; if (message && ! confirm(message)) { this.value = this.dataset.current; return; } this.form.submit();"
+                        >
+                            <option value="draft" @selected($invoice->managedStatus() === 'draft') @unless ($invoice->isDraft()) data-confirm="Terugzetten naar concept? De uren worden vrijgegeven en de PDF wordt verwijderd." @endunless>Concept</option>
+                            <option value="open" @selected($invoice->managedStatus() === 'open') @if ($invoice->isDraft()) data-confirm="Deze factuur definitief maken? De uren worden vergrendeld." @endif>Openstaand</option>
+                            <option value="paid" @selected($invoice->managedStatus() === 'paid') @if ($invoice->isDraft()) data-confirm="Deze factuur definitief maken? De uren worden vergrendeld." @endif>Betaald</option>
+                            @unless ($invoice->isDraft())
+                                <option value="cancelled" @selected($invoice->managedStatus() === 'cancelled') data-confirm="Deze factuur annuleren?">Geannuleerd</option>
+                            @endunless
+                        </x-select-input>
+                    </form>
                 </div>
             </div>
         @empty

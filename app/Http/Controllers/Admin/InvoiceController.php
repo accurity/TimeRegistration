@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreInvoiceRequest;
 use App\Http\Requests\Admin\UpdateInvoiceRequest;
+use App\Http\Requests\Admin\UpdateInvoiceStatusRequest;
 use App\Models\Invoice;
 use App\Models\Project;
 use App\Models\Setting;
@@ -25,11 +26,16 @@ class InvoiceController extends Controller
         private readonly InvoicePdfService $invoicePdfs,
     ) {}
 
-    public function index(): View
+    public function index(Request $request): View
     {
+        $periodDirection = $request->query('direction') === 'asc' ? 'asc' : 'desc';
+
         return view('admin.invoices.index', [
+            'periodDirection' => $periodDirection,
             'invoices' => Invoice::query()
                 ->with(['client', 'project'])
+                ->orderBy('period_year', $periodDirection)
+                ->orderBy('period_month', $periodDirection)
                 ->orderByDesc('invoice_date')
                 ->orderByDesc('sequence_number')
                 ->get(),
@@ -179,6 +185,47 @@ class InvoiceController extends Controller
     {
         abort_unless($invoice->isDraft(), 404);
 
+        $this->finalizeDraft($invoice);
+
+        return redirect()
+            ->route('admin.invoices.index')
+            ->with('status', 'Factuur definitief gemaakt en PDF gegenereerd.');
+    }
+
+    public function download(Invoice $invoice): StreamedResponse
+    {
+        abort_unless($invoice->pdf_path && Storage::disk('invoices')->exists($invoice->pdf_path), 404);
+
+        return Storage::disk('invoices')->download($invoice->pdf_path, "{$invoice->invoice_number}.pdf");
+    }
+
+    public function updateStatus(UpdateInvoiceStatusRequest $request, Invoice $invoice): RedirectResponse
+    {
+        $status = $request->validated('status');
+
+        if ($invoice->isDraft() && $status !== 'draft') {
+            $this->finalizeDraft($invoice);
+        }
+
+        if (! $invoice->isDraft() && $status === 'draft') {
+            $this->releaseFinalizedInvoice($invoice);
+        }
+
+        $invoice->update(match ($status) {
+            'draft' => ['status' => 'draft', 'payment_status' => 'open', 'paid_at' => null],
+            'open' => ['status' => 'final', 'payment_status' => 'open', 'paid_at' => null],
+            'paid' => ['status' => 'final', 'payment_status' => 'paid', 'paid_at' => $invoice->paid_at ?? now()],
+            'cancelled' => ['status' => 'cancelled', 'payment_status' => 'open', 'paid_at' => null],
+        });
+
+        return back()->with('status', 'Factuurstatus bijgewerkt.');
+    }
+
+    /**
+     * Freeze the amounts, lock the period's time entries and generate the PDF.
+     */
+    private function finalizeDraft(Invoice $invoice): void
+    {
         $invoice->loadMissing(['client', 'project']);
         $settings = Setting::current();
 
@@ -207,39 +254,21 @@ class InvoiceController extends Controller
 
         $pdfPath = $this->invoicePdfs->generate($invoice);
         $invoice->update(['pdf_path' => $pdfPath]);
-
-        return redirect()
-            ->route('admin.invoices.index')
-            ->with('status', 'Factuur definitief gemaakt en PDF gegenereerd.');
     }
 
-    public function download(Invoice $invoice): StreamedResponse
+    /**
+     * Undo a finalization: free the locked time entries and remove the PDF, which a draft must not have.
+     */
+    private function releaseFinalizedInvoice(Invoice $invoice): void
     {
-        abort_unless($invoice->pdf_path && Storage::disk('invoices')->exists($invoice->pdf_path), 404);
+        TimeEntry::query()
+            ->where('invoice_id', $invoice->id)
+            ->update(['invoice_id' => null]);
 
-        return Storage::disk('invoices')->download($invoice->pdf_path, "{$invoice->invoice_number}.pdf");
-    }
-
-    public function cancel(Invoice $invoice): RedirectResponse
-    {
-        abort_unless($invoice->isFinal(), 404);
-
-        $invoice->update(['status' => 'cancelled']);
-
-        return redirect()
-            ->route('admin.invoices.index')
-            ->with('status', 'Factuur geannuleerd.');
-    }
-
-    public function markPaid(Invoice $invoice): RedirectResponse
-    {
-        abort_unless($invoice->isFinal(), 404);
-
-        $invoice->update(['payment_status' => 'paid', 'paid_at' => now()]);
-
-        return redirect()
-            ->route('admin.invoices.index')
-            ->with('status', 'Factuur gemarkeerd als betaald.');
+        if ($invoice->pdf_path) {
+            Storage::disk('invoices')->delete($invoice->pdf_path);
+            $invoice->update(['pdf_path' => null]);
+        }
     }
 
     private function uninvoicedAmount(Project $project, int $year, int $month): float

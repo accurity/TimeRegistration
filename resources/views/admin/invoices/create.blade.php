@@ -35,7 +35,8 @@
             Kies eerst een project en periode om een conceptfactuur op te stellen.
         </div>
     @else
-        @if ($proposal['approval'] && ! $proposal['approval']->isApproved())
+        @if (! $project->client->requires_approval)
+        @elseif ($proposal['approval'] && ! $proposal['approval']->isApproved())
             <div class="mb-[14px] max-w-2xl rounded-md border border-status-amber-border bg-status-amber-bg px-4 py-3 text-[13px] text-status-amber-fg dark:border-status-amber-border-dark dark:bg-status-amber-bg-dark dark:text-status-amber-fg-dark">
                 Let op: de uren van deze periode zijn nog niet goedgekeurd door de klant.
             </div>

@@ -14,6 +14,8 @@ class MonthlyApprovalController extends Controller
 {
     public function submit(Request $request, Project $project): RedirectResponse
     {
+        abort_unless($project->client->requires_approval, 404);
+
         $validated = $request->validate([
             'year' => ['required', 'integer'],
             'month' => ['required', 'integer', 'between:1,12'],

@@ -1,4 +1,6 @@
-@if (! $approval || $approval->isRejected())
+@if (! $project->client->requires_approval)
+    <a href="{{ route('admin.invoices.create', ['project_id' => $project->id, 'year' => $year, 'month' => $month]) }}" class="inline-flex items-center justify-center rounded-[3px] border border-brand-600 bg-brand-600 px-[18px] py-[9px] text-sm font-semibold text-white hover:border-brand-800 hover:bg-brand-800">Factuur opstellen</a>
+@elseif (! $approval || $approval->isRejected())
     <form method="POST" action="{{ route('admin.projects.monthly-approval.submit', $project) }}">
         @csrf
         <input type="hidden" name="year" value="{{ $year }}">

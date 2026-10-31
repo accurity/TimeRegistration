@@ -30,6 +30,7 @@ class StoreClientRequest extends FormRequest
             'city' => ['required', 'string', 'max:255'],
             'kvk_number' => ['nullable', 'string', 'max:50'],
             'btw_number' => ['nullable', 'string', 'max:50'],
+            'requires_approval' => ['sometimes', 'boolean'],
         ];
     }
 }

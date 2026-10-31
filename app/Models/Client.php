@@ -16,11 +16,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'city',
     'kvk_number',
     'btw_number',
+    'requires_approval',
 ])]
 class Client extends Model
 {
     /** @use HasFactory<ClientFactory> */
     use HasFactory;
+
+    protected function casts(): array
+    {
+        return [
+            'requires_approval' => 'boolean',
+        ];
+    }
 
     /**
      * Contact persons (client-role users) linked to this client.

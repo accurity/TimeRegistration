@@ -12,7 +12,8 @@
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    @if ($proposal['approval'] && ! $proposal['approval']->isApproved())
+    @if (! $invoice->client->requires_approval)
+    @elseif ($proposal['approval'] && ! $proposal['approval']->isApproved())
         <div class="mb-[14px] max-w-2xl rounded-md border border-status-amber-border bg-status-amber-bg px-4 py-3 text-[13px] text-status-amber-fg dark:border-status-amber-border-dark dark:bg-status-amber-bg-dark dark:text-status-amber-fg-dark">
             Let op: de uren van deze periode zijn nog niet goedgekeurd door de klant.
         </div>
@@ -73,7 +74,7 @@
 
     <div class="mt-[14px] max-w-2xl rounded-md border border-ink-200 bg-white px-[22px] py-5 dark:border-dark-border dark:bg-dark-surface1">
         <h3 class="mb-1 font-display text-base font-bold leading-6 text-ink-900 dark:text-dark-text1">Definitief maken</h3>
-        <p class="mb-[14px] text-[13px] leading-5 text-ink-700 dark:text-dark-text2">De bedragen worden bevroren, de uren van deze periode worden vergrendeld en de PDF wordt gegenereerd. Dit kan daarna niet meer worden teruggedraaid (alleen annuleren).</p>
+        <p class="mb-[14px] text-[13px] leading-5 text-ink-700 dark:text-dark-text2">De bedragen worden bevroren, de uren van deze periode worden vergrendeld en de PDF wordt gegenereerd. Terugdraaien kan daarna via de status op het factuuroverzicht.</p>
         <form method="POST" action="{{ route('admin.invoices.finalize', $invoice) }}" onsubmit="return confirm('Deze factuur definitief maken? De uren worden vergrendeld.')">
             @csrf
             <x-primary-button>Definitief maken</x-primary-button>
