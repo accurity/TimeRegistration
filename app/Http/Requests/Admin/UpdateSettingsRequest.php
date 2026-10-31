@@ -30,6 +30,7 @@ class UpdateSettingsRequest extends FormRequest
             'kvk_number' => ['nullable', 'string', 'max:50'],
             'btw_number' => ['nullable', 'string', 'max:50'],
             'iban' => ['nullable', 'string', 'max:50'],
+            'phone' => ['nullable', 'string', 'max:50'],
             'default_payment_term_days' => ['required', 'integer', 'min:1', 'max:365'],
             'default_vat_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
         ];
