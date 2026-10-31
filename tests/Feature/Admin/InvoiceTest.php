@@ -6,6 +6,7 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\MonthlyApproval;
 use App\Models\Project;
+use App\Models\Setting;
 use App\Models\TimeEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -203,6 +204,26 @@ class InvoiceTest extends TestCase
         $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/finalize");
 
         $response->assertNotFound();
+    }
+
+    public function test_the_pdf_shows_the_payment_note_with_the_term_of_the_invoice(): void
+    {
+        $settings = Setting::current();
+        $settings->update(['company_name' => 'Accurity', 'city' => 'Leusden', 'iban' => 'NL54 KNAB 0601 8127 35']);
+        $invoice = Invoice::factory()->final()->create(['invoice_date' => '2026-07-07', 'due_date' => '2026-08-04']);
+
+        $html = view('pdfs.invoice', [
+            'invoice' => $invoice,
+            'settings' => $settings,
+            'timeEntries' => collect(),
+            'totalHours' => 0,
+            'approval' => null,
+        ])->render();
+
+        $this->assertStringContainsString('Binnen 28 dagen na factuurdatum van 07-07-2026', $html);
+        $this->assertStringContainsString('Rekeningnummer:', $html);
+        $this->assertStringContainsString('NL54 KNAB 0601 8127 35', $html);
+        $this->assertStringContainsString('te Leusden', $html);
     }
 
     public function test_admin_can_download_the_generated_pdf(): void

@@ -53,10 +53,8 @@
             bottom: -70px;
             left: 0;
             right: 0;
-            border-top: 1px solid #DEE5EA;
-            padding-top: 14px;
             font-size: 10.5px;
-            color: #6B7C88;
+            line-height: 10px;
         }
         .page-break {
             page-break-before: always;
@@ -67,13 +65,19 @@
     <div class="footer">
         <table>
             <tr>
-                <td style="text-align:left">{{ $settings->company_name }}</td>
-                <td style="text-align:center">
-                    @if ($settings->kvk_number)KvK {{ $settings->kvk_number }}@endif
-                    @if ($settings->kvk_number && $settings->btw_number) &middot; @endif
-                    @if ($settings->btw_number)Btw {{ $settings->btw_number }}@endif
+                <td style="width:40%;text-align:left;vertical-align:top">
+                    {{ $settings->company_name }}<br>
+                    {{ $settings->address }}<br>
+                    {{ $settings->postal_code }} {{ $settings->city }}
                 </td>
-                <td style="text-align:right">{{ $invoice->invoice_number }}</td>
+                <td style="width:25%;text-align:left;vertical-align:top">
+                    @if ($settings->phone)Mobiel {{ $settings->phone }}@endif
+                </td>
+                <td style="width:35%;text-align:right;vertical-align:top">
+                    @if ($settings->kvk_number)<div>Chamber of commerce {{ $settings->kvk_number }}</div>@endif
+                    @if ($settings->btw_number)<div>VAT no. {{ $settings->btw_number }}</div>@endif
+                    @if ($settings->iban)<div>{{ $settings->iban }}</div>@endif
+                </td>
             </tr>
         </table>
     </div>
@@ -82,7 +86,8 @@
         <tr>
             <td style="width:52%;vertical-align:top">
                 <img src="data:image/png;base64,{{ $logoBase64 }}" alt="Accurity" style="height:34px;width:auto;display:block;margin-bottom:18px">
-                <div style="font-size:12px;line-height:19px;color:#4A5C68">
+                {{-- dompdf renders line-height about 1.35x larger with this font, so these values look small. --}}
+                <div style="font-size:12px;line-height:11px;color:#4A5C68">
                     {{ $settings->company_name }}<br>
                     {{ $settings->address }}<br>
                     {{ $settings->postal_code }} {{ $settings->city }}
@@ -101,7 +106,7 @@
 
     <div style="margin-bottom:34px">
         <div style="font-size:10px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:#6B7C88;margin-bottom:8px">Factuur aan</div>
-        <div style="font-size:13px;line-height:21px">
+        <div style="font-size:13px;line-height:12px">
             <strong style="font-weight:600">{{ $invoice->client->name }}</strong><br>
             {{ $invoice->client->address }}<br>
             {{ $invoice->client->postal_code }} {{ $invoice->client->city }}
@@ -144,13 +149,25 @@
         </tr>
     </table>
 
-    <div style="font-size:12px;line-height:20px;color:#4A5C68">
-        Wij verzoeken u het totaalbedrag v&oacute;&oacute;r {{ $invoice->due_date->format('d-m-Y') }} over te maken
+    <table style="font-size:12px;line-height:11px">
+        <tr>
+            <td style="width:130px;padding-bottom:12px;vertical-align:top">Betalingstermijn:</td>
+            <td style="padding-bottom:12px;vertical-align:top">Binnen {{ (int) $invoice->invoice_date->diffInDays($invoice->due_date) }} dagen na factuurdatum van {{ $invoice->invoice_date->format('d-m-Y') }}</td>
+        </tr>
         @if ($settings->iban)
-            op {{ $settings->iban }} t.n.v. {{ $settings->company_name }},
+            <tr>
+                <td style="padding-bottom:12px;vertical-align:top">Rekeningnummer:</td>
+                <td style="padding-bottom:12px;vertical-align:top">{{ $settings->iban }}</td>
+            </tr>
         @endif
-        onder vermelding van factuurnummer {{ $invoice->invoice_number }}.
-    </div>
+        <tr>
+            <td style="vertical-align:top">Ten name van:</td>
+            <td style="vertical-align:top">
+                {{ $settings->company_name }}<br>
+                te {{ $settings->city }}
+            </td>
+        </tr>
+    </table>
 
     <div class="page-break"></div>
 

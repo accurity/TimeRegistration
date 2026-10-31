@@ -53,10 +53,17 @@
                 </div>
             </div>
 
-            <div class="mb-[22px]">
-                <x-input-label for="iban" value="IBAN" />
-                <x-text-input id="iban" name="iban" type="text" class="block w-full" :value="old('iban', $setting->iban)" />
-                <x-input-error :messages="$errors->get('iban')" class="mt-2" />
+            <div class="mb-[22px] grid grid-cols-2 gap-[14px]">
+                <div>
+                    <x-input-label for="iban" value="IBAN" />
+                    <x-text-input id="iban" name="iban" type="text" class="block w-full" :value="old('iban', $setting->iban)" />
+                    <x-input-error :messages="$errors->get('iban')" class="mt-2" />
+                </div>
+                <div>
+                    <x-input-label for="phone" value="Mobiel" />
+                    <x-text-input id="phone" name="phone" type="text" class="block w-full" :value="old('phone', $setting->phone)" />
+                    <x-input-error :messages="$errors->get('phone')" class="mt-2" />
+                </div>
             </div>
 
             <div class="mb-[22px] grid grid-cols-2 gap-[14px]">

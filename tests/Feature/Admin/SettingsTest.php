@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Admin;
 
+use App\Models\Invoice;
 use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -35,6 +36,38 @@ class SettingsTest extends TestCase
         $response = $this->get('/admin/settings');
 
         $response->assertRedirect(route('login'));
+    }
+
+    public function test_admin_can_save_a_phone_number_that_appears_in_the_invoice_footer(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->put('/admin/settings', [
+            'company_name' => 'Accurity',
+            'address' => 'Havenweg 44',
+            'postal_code' => '3421 AB',
+            'city' => 'Nieuwegein',
+            'kvk_number' => '12345678',
+            'btw_number' => 'NL123456789B01',
+            'iban' => 'NL91ABNA0417164300',
+            'phone' => '+31 (0)62 256 7217',
+            'default_payment_term_days' => 14,
+            'default_vat_percentage' => 21,
+        ]);
+
+        $response->assertSessionHasNoErrors();
+
+        $footer = view('pdfs.invoice', [
+            'invoice' => Invoice::factory()->final()->create(),
+            'settings' => Setting::current(),
+            'timeEntries' => collect(),
+            'totalHours' => 0,
+            'approval' => null,
+        ])->render();
+
+        $this->assertStringContainsString('Mobiel +31 (0)62 256 7217', $footer);
+        $this->assertStringContainsString('Chamber of commerce 12345678', $footer);
+        $this->assertStringContainsString('VAT no. NL123456789B01', $footer);
     }
 
     public function test_admin_can_update_the_settings(): void

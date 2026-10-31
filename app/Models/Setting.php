@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Model;
     'kvk_number',
     'btw_number',
     'iban',
+    'phone',
     'default_payment_term_days',
     'default_vat_percentage',
 ])]
