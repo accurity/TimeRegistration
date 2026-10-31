@@ -4,9 +4,15 @@
             <h1 class="mb-1 font-display text-[28px] font-bold leading-9 text-ink-900 dark:text-dark-text1">Facturen</h1>
             <p class="text-[13px] text-ink-500 dark:text-dark-text2">{{ $invoices->count() }} {{ $invoices->count() === 1 ? 'factuur' : 'facturen' }}</p>
         </div>
-        <a href="{{ route('admin.invoices.create') }}" class="inline-flex items-center justify-center rounded-[3px] border border-brand-600 bg-brand-600 px-[18px] py-[9px] text-sm font-semibold text-white hover:border-brand-800 hover:bg-brand-800">
-            Nieuwe factuur
-        </a>
+        <div class="flex gap-[10px]">
+            <form method="POST" action="{{ route('admin.invoices.regenerate-pdfs') }}" onsubmit="return confirm('Alle factuur-PDF\'s opnieuw genereren? De bestaande PDF\'s worden overschreven, ook van facturen die al zijn verstuurd. Dit kan niet ongedaan worden gemaakt.')">
+                @csrf
+                <button type="submit" class="inline-flex items-center justify-center rounded-[3px] border border-ink-300 bg-white px-[18px] py-[9px] text-sm font-semibold text-brand-800 hover:bg-ink-50 dark:border-dark-borderfield dark:bg-transparent dark:text-dark-text1 dark:hover:bg-dark-surface2">PDF's opnieuw genereren</button>
+            </form>
+            <a href="{{ route('admin.invoices.create') }}" class="inline-flex items-center justify-center rounded-[3px] border border-brand-600 bg-brand-600 px-[18px] py-[9px] text-sm font-semibold text-white hover:border-brand-800 hover:bg-brand-800">
+                Nieuwe factuur
+            </a>
+        </div>
     </div>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
