@@ -10,6 +10,7 @@ use App\Models\TimeEntry;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Testing\TestResponse;
 use Tests\TestCase;
 
 class InvoiceTest extends TestCase
@@ -225,13 +226,21 @@ class InvoiceTest extends TestCase
         $response->assertNotFound();
     }
 
+    private function setStatus(Invoice $invoice, string $status): TestResponse
+    {
+        return $this->actingAs($this->admin())
+            ->from('/admin/invoices')
+            ->patch("/admin/invoices/{$invoice->id}/status", ['status' => $status]);
+    }
+
     public function test_admin_can_cancel_a_final_invoice(): void
     {
         $invoice = Invoice::factory()->final()->create(['invoice_number' => '1012620-ABC', 'pdf_path' => '2026/1012620-ABC.pdf']);
 
-        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/cancel");
+        $response = $this->setStatus($invoice, 'cancelled');
 
         $response->assertSessionHasNoErrors();
+        $response->assertRedirect('/admin/invoices');
         $invoice->refresh();
         $this->assertSame('cancelled', $invoice->status);
         $this->assertSame('1012620-ABC', $invoice->invoice_number);
@@ -242,18 +251,10 @@ class InvoiceTest extends TestCase
     {
         $invoice = Invoice::factory()->create(['status' => 'draft']);
 
-        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/cancel");
+        $response = $this->setStatus($invoice, 'cancelled');
 
-        $response->assertNotFound();
-    }
-
-    public function test_a_cancelled_invoice_cannot_be_cancelled_again(): void
-    {
-        $invoice = Invoice::factory()->cancelled()->create();
-
-        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/cancel");
-
-        $response->assertNotFound();
+        $response->assertSessionHasErrors('status');
+        $this->assertSame('draft', $invoice->fresh()->status);
     }
 
     public function test_cancelling_an_invoice_does_not_unlock_its_time_entries(): void
@@ -263,7 +264,7 @@ class InvoiceTest extends TestCase
         $entry = TimeEntry::factory()->create(['project_id' => $project->id]);
         TimeEntry::query()->whereKey($entry->id)->update(['invoice_id' => $invoice->id]);
 
-        $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/cancel");
+        $this->setStatus($invoice, 'cancelled');
 
         $this->assertSame($invoice->id, $entry->fresh()->invoice_id);
     }
@@ -272,7 +273,7 @@ class InvoiceTest extends TestCase
     {
         $invoice = Invoice::factory()->final()->create();
 
-        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/mark-paid");
+        $response = $this->setStatus($invoice, 'paid');
 
         $response->assertSessionHasNoErrors();
         $invoice->refresh();
@@ -280,22 +281,139 @@ class InvoiceTest extends TestCase
         $this->assertNotNull($invoice->paid_at);
     }
 
-    public function test_a_draft_invoice_cannot_be_marked_paid(): void
+    public function test_a_paid_invoice_can_be_set_back_to_open(): void
     {
-        $invoice = Invoice::factory()->create(['status' => 'draft']);
+        $invoice = Invoice::factory()->final()->paid()->create();
 
-        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/mark-paid");
+        $this->setStatus($invoice, 'open');
 
-        $response->assertNotFound();
+        $invoice->refresh();
+        $this->assertSame('final', $invoice->status);
+        $this->assertSame('open', $invoice->payment_status);
+        $this->assertNull($invoice->paid_at);
     }
 
-    public function test_a_cancelled_invoice_cannot_be_marked_paid(): void
+    public function test_a_cancelled_invoice_can_be_reinstated_keeping_its_locked_entries_and_pdf(): void
     {
-        $invoice = Invoice::factory()->cancelled()->create();
+        $project = Project::factory()->create();
+        $invoice = Invoice::factory()->cancelled()->create(['project_id' => $project->id, 'pdf_path' => '2026/TEST-1.pdf']);
+        $entry = TimeEntry::factory()->create(['project_id' => $project->id]);
+        TimeEntry::query()->whereKey($entry->id)->update(['invoice_id' => $invoice->id]);
 
-        $response = $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/mark-paid");
+        $this->setStatus($invoice, 'open');
 
-        $response->assertNotFound();
+        $invoice->refresh();
+        $this->assertSame('final', $invoice->status);
+        $this->assertSame('2026/TEST-1.pdf', $invoice->pdf_path);
+        $this->assertSame($invoice->id, $entry->fresh()->invoice_id);
+    }
+
+    public function test_setting_a_draft_to_open_finalizes_it(): void
+    {
+        Storage::fake('invoices');
+
+        $project = Project::factory()->create();
+        $invoice = Invoice::factory()->create(['project_id' => $project->id, 'client_id' => $project->client_id, 'period_year' => 2026, 'period_month' => 9, 'status' => 'draft']);
+        $entry = TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05', 'hours' => '2.00', 'rate' => 100]);
+
+        $this->setStatus($invoice, 'open');
+
+        $invoice->refresh();
+        $this->assertSame('final', $invoice->status);
+        $this->assertSame('242.00', $invoice->total);
+        $this->assertSame($invoice->id, $entry->fresh()->invoice_id);
+        Storage::disk('invoices')->assertExists($invoice->pdf_path);
+    }
+
+    public function test_setting_a_draft_to_paid_finalizes_it_and_records_the_payment(): void
+    {
+        Storage::fake('invoices');
+
+        $invoice = Invoice::factory()->create(['status' => 'draft']);
+
+        $this->setStatus($invoice, 'paid');
+
+        $invoice->refresh();
+        $this->assertSame('final', $invoice->status);
+        $this->assertSame('paid', $invoice->payment_status);
+        $this->assertNotNull($invoice->paid_at);
+        Storage::disk('invoices')->assertExists($invoice->pdf_path);
+    }
+
+    public function test_setting_a_paid_invoice_back_to_draft_unlocks_entries_and_removes_the_pdf(): void
+    {
+        Storage::fake('invoices');
+        Storage::disk('invoices')->put('2026/TEST-1.pdf', '%PDF-1.4 fake content');
+
+        $project = Project::factory()->create();
+        $invoice = Invoice::factory()->final()->paid()->create(['project_id' => $project->id, 'pdf_path' => '2026/TEST-1.pdf']);
+        $entry = TimeEntry::factory()->create(['project_id' => $project->id]);
+        TimeEntry::query()->whereKey($entry->id)->update(['invoice_id' => $invoice->id]);
+
+        $this->setStatus($invoice, 'draft');
+
+        $invoice->refresh();
+        $this->assertSame('draft', $invoice->status);
+        $this->assertSame('open', $invoice->payment_status);
+        $this->assertNull($invoice->paid_at);
+        $this->assertNull($invoice->pdf_path);
+        $this->assertNull($entry->fresh()->invoice_id);
+        Storage::disk('invoices')->assertMissing('2026/TEST-1.pdf');
+    }
+
+    public function test_an_unknown_status_is_rejected(): void
+    {
+        $invoice = Invoice::factory()->final()->create();
+
+        $response = $this->setStatus($invoice, 'bogus');
+
+        $response->assertSessionHasErrors('status');
+    }
+
+    public function test_client_role_cannot_change_an_invoice_status(): void
+    {
+        $invoice = Invoice::factory()->final()->create();
+
+        $response = $this->actingAs(User::factory()->create(['role' => 'client']))
+            ->patch("/admin/invoices/{$invoice->id}/status", ['status' => 'paid']);
+
+        $response->assertForbidden();
+        $this->assertSame('open', $invoice->fresh()->payment_status);
+    }
+
+    public function test_the_overview_sorts_on_period_descending_by_default_and_toggles_to_ascending(): void
+    {
+        Invoice::factory()->create(['invoice_number' => 'PERIOD-AUG', 'period_year' => 2026, 'period_month' => 8]);
+        Invoice::factory()->create(['invoice_number' => 'PERIOD-DEC-2025', 'period_year' => 2025, 'period_month' => 12]);
+        Invoice::factory()->create(['invoice_number' => 'PERIOD-SEP', 'period_year' => 2026, 'period_month' => 9]);
+
+        $admin = $this->admin();
+
+        $default = $this->actingAs($admin)->get('/admin/invoices');
+        $default->assertSeeInOrder(['PERIOD-SEP', 'PERIOD-AUG', 'PERIOD-DEC-2025']);
+        $default->assertSee(e(route('admin.invoices.index', ['direction' => 'asc'])), false);
+
+        $ascending = $this->actingAs($admin)->get('/admin/invoices?direction=asc');
+        $ascending->assertSeeInOrder(['PERIOD-DEC-2025', 'PERIOD-AUG', 'PERIOD-SEP']);
+        $ascending->assertSee(e(route('admin.invoices.index', ['direction' => 'desc'])), false);
+    }
+
+    public function test_no_approval_warning_is_shown_for_a_client_that_does_not_require_approval(): void
+    {
+        $client = Client::factory()->withoutApproval()->create();
+        $project = Project::factory()->create(['client_id' => $client->id]);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05']);
+        $invoice = Invoice::factory()->create(['client_id' => $client->id, 'project_id' => $project->id, 'period_year' => 2026, 'period_month' => 9]);
+
+        $admin = $this->admin();
+
+        $this->actingAs($admin)->get('/admin/invoices/create?'.http_build_query([
+            'project_id' => $project->id,
+            'year' => 2026,
+            'month' => 9,
+        ]))->assertOk()->assertDontSee('Let op:');
+
+        $this->actingAs($admin)->get("/admin/invoices/{$invoice->id}/edit")->assertOk()->assertDontSee('Let op:');
     }
 
     public function test_the_overview_shows_a_distinct_label_for_each_status_and_payment_combination(): void
@@ -308,6 +426,6 @@ class InvoiceTest extends TestCase
         $response = $this->actingAs($this->admin())->get('/admin/invoices');
 
         $response->assertOk();
-        $response->assertSeeInOrder(['Concept', 'Openstaand', 'Betaald', 'Geannuleerd']);
+        $response->assertSeeInOrder(['>Concept</span>', '>Openstaand</span>', '>Betaald</span>', '>Geannuleerd</span>'], false);
     }
 }

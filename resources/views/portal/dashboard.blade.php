@@ -4,6 +4,7 @@
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
+    @if ($requiresApproval)
     <div class="mb-6 overflow-hidden rounded-md border border-ink-200 dark:border-dark-border">
         <div class="grid grid-cols-[1.6fr_1fr_1fr_100px] gap-3 border-b border-ink-200 bg-ink-50 px-5 py-[10px] text-[11px] font-semibold uppercase tracking-[.1em] text-ink-500 dark:border-dark-border dark:bg-dark-surface2 dark:text-dark-text2">
             <div>Project</div>
@@ -43,6 +44,7 @@
             </div>
         @endforelse
     </div>
+    @endif
 
     <h2 class="mb-4 font-display text-base font-bold leading-6 text-ink-900 dark:text-dark-text1">Openstaande facturen</h2>
 

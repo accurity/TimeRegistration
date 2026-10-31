@@ -24,7 +24,13 @@ class ClientFactory extends Factory
             'postal_code' => fake()->postcode(),
             'city' => fake()->city(),
             'kvk_number' => fake()->numerify('########'),
-            'btw_number' => 'NL' . fake()->numerify('#########') . 'B01',
+            'btw_number' => 'NL'.fake()->numerify('#########').'B01',
+            'requires_approval' => true,
         ];
+    }
+
+    public function withoutApproval(): static
+    {
+        return $this->state(fn (array $attributes) => ['requires_approval' => false]);
     }
 }

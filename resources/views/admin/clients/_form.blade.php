@@ -44,3 +44,13 @@
         <x-input-error :messages="$errors->get('btw_number')" class="mt-2" />
     </div>
 </div>
+
+<div class="mb-[22px]">
+    <input type="hidden" name="requires_approval" value="0">
+    <label for="requires_approval" class="inline-flex items-center gap-2 text-sm text-ink-700 dark:text-dark-text2">
+        <input id="requires_approval" type="checkbox" name="requires_approval" value="1" class="h-3.5 w-3.5 rounded-[2px] border-ink-300 text-brand-600 focus:ring-brand-400 dark:border-dark-borderfield dark:bg-dark-bg" @checked(old('requires_approval', $client->requires_approval ?? true))>
+        Goedkeuring van uren vereist
+    </label>
+    <p class="mt-1 text-[13px] text-ink-500 dark:text-dark-text2">Uitgezet: uren hoeven niet ter goedkeuring te worden aangeboden en een factuur kan meteen worden opgesteld.</p>
+    <x-input-error :messages="$errors->get('requires_approval')" class="mt-2" />
+</div>

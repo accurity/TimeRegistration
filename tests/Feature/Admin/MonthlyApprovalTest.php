@@ -117,6 +117,38 @@ class MonthlyApprovalTest extends TestCase
         $this->assertNull($approval->rejection_reason);
     }
 
+    public function test_hours_of_a_client_without_required_approval_cannot_be_submitted(): void
+    {
+        Mail::fake();
+
+        $client = Client::factory()->withoutApproval()->create();
+        $project = Project::factory()->create(['client_id' => $client->id]);
+
+        $response = $this->actingAs($this->admin())->post("/admin/projects/{$project->id}/monthly-approval", [
+            'year' => 2026,
+            'month' => 9,
+        ]);
+
+        $response->assertNotFound();
+        $this->assertDatabaseMissing('monthly_approvals', ['project_id' => $project->id]);
+        Mail::assertNothingSent();
+    }
+
+    public function test_the_time_entries_page_offers_invoicing_directly_for_a_client_without_required_approval(): void
+    {
+        $client = Client::factory()->withoutApproval()->create();
+        $project = Project::factory()->create(['client_id' => $client->id]);
+        $admin = $this->admin();
+
+        foreach (['calendar', 'list'] as $view) {
+            $response = $this->actingAs($admin)->get("/admin/projects/{$project->id}/time-entries?year=2026&month=9&view={$view}");
+
+            $response->assertOk();
+            $response->assertSee('Factuur opstellen');
+            $response->assertDontSee('Ter goedkeuring versturen');
+        }
+    }
+
     public function test_the_pending_status_is_visible_on_the_time_entries_page(): void
     {
         $project = Project::factory()->create();

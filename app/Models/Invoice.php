@@ -73,4 +73,18 @@ class Invoice extends Model
     {
         return $this->payment_status === 'paid';
     }
+
+    /**
+     * The single status an admin manages: combines the invoice status and the payment status.
+     *
+     * @return 'draft'|'open'|'paid'|'cancelled'
+     */
+    public function managedStatus(): string
+    {
+        if (! $this->isFinal()) {
+            return $this->status;
+        }
+
+        return $this->isPaid() ? 'paid' : 'open';
+    }
 }

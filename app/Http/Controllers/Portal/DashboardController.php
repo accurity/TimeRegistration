@@ -54,6 +54,7 @@ class DashboardController extends Controller
             ->get();
 
         return view('portal.dashboard', [
+            'requiresApproval' => $request->user()->client?->requires_approval ?? true,
             'projectStatuses' => $projectStatuses,
             'openInvoices' => $openInvoices,
         ]);

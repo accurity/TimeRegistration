@@ -9,6 +9,28 @@
         </div>
     </div>
 
+    <div class="mb-4 flex items-start justify-between gap-6 rounded-[4px] border border-ink-200 border-l-[3px] border-l-status-green-fg bg-white p-5 dark:border-dark-border dark:border-l-status-green-fg-dark dark:bg-dark-surface1">
+        <div>
+            <div class="mb-[10px] text-[11px] font-semibold uppercase tracking-[.1em] text-ink-500 dark:text-dark-text2">Gefactureerd in boekjaar {{ $selectedFiscalYear['year'] ?? now()->year }}</div>
+            <div class="font-display text-[30px] font-bold leading-9 text-ink-900 dark:text-dark-text1" style="font-variant-numeric: tabular-nums">&euro; {{ number_format($selectedFiscalYear['subtotal'] ?? 0, 2, ',', '.') }} <span class="font-sans text-[13px] font-normal text-ink-500 dark:text-dark-text2">excl. btw</span></div>
+            <div class="mt-[6px] text-[13px] text-ink-700 dark:text-dark-text2" style="font-variant-numeric: tabular-nums">
+                &euro; {{ number_format($selectedFiscalYear['total'] ?? 0, 2, ',', '.') }} incl. btw
+                &middot; {{ $selectedFiscalYear['count'] ?? 0 }} {{ ($selectedFiscalYear['count'] ?? 0) === 1 ? 'factuur' : 'facturen' }}
+            </div>
+        </div>
+
+        @if ($invoicedPerFiscalYear->count() > 1)
+            <form method="GET" action="{{ route('admin.dashboard') }}">
+                <x-input-label for="year" value="Boekjaar" />
+                <x-select-input id="year" name="year" class="w-28" onchange="this.form.submit()">
+                    @foreach ($invoicedPerFiscalYear as $fiscalYear)
+                        <option value="{{ $fiscalYear['year'] }}" @selected($fiscalYear['year'] === $selectedFiscalYear['year'])>{{ $fiscalYear['year'] }}</option>
+                    @endforeach
+                </x-select-input>
+            </form>
+        @endif
+    </div>
+
     <div class="mb-6 grid grid-cols-3 gap-4">
         <div class="rounded-[4px] border border-ink-200 border-l-[3px] border-l-status-amber-fg bg-white p-5 dark:border-dark-border dark:border-l-status-amber-fg-dark dark:bg-dark-surface1">
             <div class="mb-[10px] text-[11px] font-semibold uppercase tracking-[.1em] text-ink-500 dark:text-dark-text2">Openstaand</div>
