@@ -25,6 +25,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
         ->name('projects.time-entries.days.update');
     Route::post('projects/{project}/monthly-approval', [MonthlyApprovalController::class, 'submit'])->name('projects.monthly-approval.submit');
     Route::resource('invoices', InvoiceController::class)->except('show');
+    Route::post('invoices/regenerate-pdfs', [InvoiceController::class, 'regeneratePdfs'])->name('invoices.regenerate-pdfs');
     Route::post('invoices/{invoice}/finalize', [InvoiceController::class, 'finalize'])->name('invoices.finalize');
     Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
     Route::patch('invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('invoices.status.update');

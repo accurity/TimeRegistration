@@ -226,6 +226,45 @@ class InvoiceTest extends TestCase
         $this->assertStringContainsString('te Leusden', $html);
     }
 
+    public function test_admin_can_regenerate_the_pdfs_of_all_invoices_that_have_one(): void
+    {
+        Storage::fake('invoices');
+        Storage::disk('invoices')->put('2026/FINAL-1.pdf', 'old final');
+        Storage::disk('invoices')->put('2026/CANCELLED-1.pdf', 'old cancelled');
+
+        $final = Invoice::factory()->final()->paid()->create(['invoice_number' => 'FINAL-1', 'invoice_date' => '2026-10-01', 'pdf_path' => '2026/FINAL-1.pdf', 'total' => 605]);
+        $cancelled = Invoice::factory()->cancelled()->create(['invoice_number' => 'CANCELLED-1', 'invoice_date' => '2026-10-01', 'pdf_path' => '2026/CANCELLED-1.pdf']);
+        $draft = Invoice::factory()->create(['status' => 'draft', 'invoice_number' => 'DRAFT-1', 'invoice_date' => '2026-10-01']);
+
+        $response = $this->actingAs($this->admin())->post('/admin/invoices/regenerate-pdfs');
+
+        $response->assertRedirect(route('admin.invoices.index'));
+        $response->assertSessionHas('status', "2 PDF's opnieuw gegenereerd.");
+
+        $this->assertStringStartsWith('%PDF', Storage::disk('invoices')->get('2026/FINAL-1.pdf'));
+        $this->assertStringStartsWith('%PDF', Storage::disk('invoices')->get('2026/CANCELLED-1.pdf'));
+        Storage::disk('invoices')->assertMissing('2026/DRAFT-1.pdf');
+
+        $final->refresh();
+        $this->assertSame('final', $final->status);
+        $this->assertSame('paid', $final->payment_status);
+        $this->assertSame('605.00', $final->total);
+        $this->assertSame('cancelled', $cancelled->fresh()->status);
+        $this->assertNull($draft->fresh()->pdf_path);
+    }
+
+    public function test_client_role_cannot_regenerate_the_pdfs(): void
+    {
+        Storage::fake('invoices');
+        Storage::disk('invoices')->put('2026/FINAL-1.pdf', 'old final');
+        Invoice::factory()->final()->create(['invoice_number' => 'FINAL-1', 'invoice_date' => '2026-10-01', 'pdf_path' => '2026/FINAL-1.pdf']);
+
+        $response = $this->actingAs(User::factory()->create(['role' => 'client']))->post('/admin/invoices/regenerate-pdfs');
+
+        $response->assertForbidden();
+        $this->assertSame('old final', Storage::disk('invoices')->get('2026/FINAL-1.pdf'));
+    }
+
     public function test_admin_can_download_the_generated_pdf(): void
     {
         Storage::fake('invoices');

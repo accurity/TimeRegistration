@@ -199,6 +199,22 @@ class InvoiceController extends Controller
         return Storage::disk('invoices')->download($invoice->pdf_path, "{$invoice->invoice_number}.pdf");
     }
 
+    /**
+     * Overwrite the PDF of every invoice that has one with the current layout and settings.
+     */
+    public function regeneratePdfs(): RedirectResponse
+    {
+        $invoices = Invoice::query()->whereNotNull('pdf_path')->get();
+
+        foreach ($invoices as $invoice) {
+            $invoice->update(['pdf_path' => $this->invoicePdfs->generate($invoice)]);
+        }
+
+        return redirect()
+            ->route('admin.invoices.index')
+            ->with('status', "{$invoices->count()} PDF's opnieuw gegenereerd.");
+    }
+
     public function updateStatus(UpdateInvoiceStatusRequest $request, Invoice $invoice): RedirectResponse
     {
         $status = $request->validated('status');
