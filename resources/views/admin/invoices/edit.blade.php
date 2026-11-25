@@ -61,11 +61,11 @@
                     class="text-sm text-status-red-fg hover:underline dark:text-status-red-fg-dark"
                     onclick="return confirm('Deze conceptfactuur verwijderen?')"
                 >Concept verwijderen</button>
-                <form id="delete-invoice-{{ $invoice->id }}" method="POST" action="{{ route('admin.invoices.destroy', $invoice) }}" class="hidden">
-                    @csrf
-                    @method('DELETE')
-                </form>
             </div>
+        </form>
+        <form id="delete-invoice-{{ $invoice->id }}" method="POST" action="{{ route('admin.invoices.destroy', $invoice) }}" class="hidden">
+            @csrf
+            @method('DELETE')
         </form>
     </div>
 
