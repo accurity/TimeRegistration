@@ -95,7 +95,7 @@ class InvoiceController extends Controller
 
         $subtotal = $this->uninvoicedAmount($project, $validated['period_year'], $validated['period_month']);
         $vatAmount = round($subtotal * (float) $settings->default_vat_percentage / 100, 2);
-        $sequenceNumber = $this->invoiceNumbers->nextSequenceNumber($project->client_id, $validated['invoice_date']);
+        $sequenceNumber = $this->invoiceNumbers->sequenceNumberFor($validated['invoice_number'], $validated['invoice_date']);
 
         $invoice = Invoice::query()->create([
             'client_id' => $project->client_id,
@@ -152,7 +152,7 @@ class InvoiceController extends Controller
 
         $subtotal = $this->uninvoicedAmount($invoice->project, $invoice->period_year, $invoice->period_month);
         $vatAmount = round($subtotal * (float) $settings->default_vat_percentage / 100, 2);
-        $sequenceNumber = $this->invoiceNumbers->nextSequenceNumber($invoice->client_id, $validated['invoice_date'], $invoice->id);
+        $sequenceNumber = $this->invoiceNumbers->sequenceNumberFor($validated['invoice_number'], $validated['invoice_date'], $invoice->id);
 
         $invoice->update([
             'invoice_number' => $validated['invoice_number'],

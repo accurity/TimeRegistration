@@ -88,6 +88,37 @@ class InvoiceTest extends TestCase
         ]);
     }
 
+    public function test_the_sequence_number_of_a_new_draft_follows_a_manually_entered_invoice_number(): void
+    {
+        $project = Project::factory()->create();
+
+        $response = $this->actingAs($this->admin())->post('/admin/invoices', [
+            'project_id' => $project->id,
+            'period_year' => 2026,
+            'period_month' => 9,
+            'invoice_number' => '1042620-INZ',
+            'invoice_date' => '2026-10-01',
+            'due_date' => '2026-10-15',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertDatabaseHas('invoices', ['invoice_number' => '1042620-INZ', 'sequence_number' => 104]);
+    }
+
+    public function test_the_sequence_number_of_a_draft_follows_a_manually_changed_invoice_number(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => 'draft', 'invoice_number' => '1012620-INZ', 'sequence_number' => 101]);
+
+        $response = $this->actingAs($this->admin())->put("/admin/invoices/{$invoice->id}", [
+            'invoice_number' => '1042620-INZ',
+            'invoice_date' => '2026-10-02',
+            'due_date' => '2026-10-16',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $this->assertSame(104, $invoice->refresh()->sequence_number);
+    }
+
     public function test_the_invoice_number_must_be_unique(): void
     {
         $client = Client::factory()->create();
