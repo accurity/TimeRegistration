@@ -172,6 +172,20 @@ class InvoiceTest extends TestCase
         $this->assertDatabaseHas('time_entries', ['id' => $entry->id]);
     }
 
+    public function test_the_delete_form_of_a_draft_is_not_nested_inside_the_save_form(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => 'draft']);
+
+        $html = $this->actingAs($this->admin())->get("/admin/invoices/{$invoice->id}/edit")->assertOk()->getContent();
+
+        $saveFormStart = strpos($html, 'action="'.route('admin.invoices.update', $invoice).'"');
+        $saveFormEnd = strpos($html, '</form>', $saveFormStart);
+        $deleteFormStart = strpos($html, 'id="delete-invoice-'.$invoice->id.'"');
+
+        $this->assertNotFalse($deleteFormStart);
+        $this->assertGreaterThan($saveFormEnd, $deleteFormStart);
+    }
+
     public function test_a_final_invoice_cannot_be_edited_or_deleted(): void
     {
         $invoice = Invoice::factory()->final()->create();
