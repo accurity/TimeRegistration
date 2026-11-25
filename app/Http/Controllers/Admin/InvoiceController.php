@@ -7,15 +7,21 @@ use App\Http\Requests\Admin\StoreInvoiceRequest;
 use App\Http\Requests\Admin\UpdateInvoiceRequest;
 use App\Http\Requests\Admin\UpdateInvoiceStatusRequest;
 use App\Models\Invoice;
+use App\Models\MonthlyApproval;
 use App\Models\Project;
 use App\Models\Setting;
 use App\Models\TimeEntry;
 use App\Services\InvoiceNumberService;
 use App\Services\InvoicePdfService;
+use Carbon\CarbonInterface;
+use Carbon\CarbonPeriod;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -34,8 +40,8 @@ class InvoiceController extends Controller
             'periodDirection' => $periodDirection,
             'invoices' => Invoice::query()
                 ->with(['client', 'project'])
-                ->orderBy('period_year', $periodDirection)
-                ->orderBy('period_month', $periodDirection)
+                ->orderBy('period_end', $periodDirection)
+                ->orderBy('period_start', $periodDirection)
                 ->orderByDesc('invoice_date')
                 ->orderByDesc('sequence_number')
                 ->get(),
@@ -50,20 +56,16 @@ class InvoiceController extends Controller
             ? $projects->firstWhere('id', (int) $request->query('project_id'))
             : null;
 
-        if ($period = $request->query('period')) {
-            [$year, $month] = array_map('intval', explode('-', $period));
-        } else {
-            $year = (int) $request->query('year', now()->year);
-            $month = (int) $request->query('month', now()->month);
-        }
+        [$periodStart, $periodEnd] = $this->requestedPeriod($request);
 
         $proposal = null;
 
         if ($project) {
             $settings = Setting::current();
-            $subtotal = $this->uninvoicedAmount($project, $year, $month);
+            $subtotal = $this->uninvoicedAmount($project, $periodStart, $periodEnd);
             $vatAmount = round($subtotal * (float) $settings->default_vat_percentage / 100, 2);
             $invoiceDate = now()->toDateString();
+            $spansMultipleVatPeriods = $settings->spansMultipleVatPeriods($periodStart, $periodEnd);
 
             $proposal = [
                 ...$this->invoiceNumbers->generate($project->client, $invoiceDate),
@@ -73,15 +75,17 @@ class InvoiceController extends Controller
                 'total' => $subtotal + $vatAmount,
                 'invoice_date' => $invoiceDate,
                 'due_date' => now()->addDays($settings->default_payment_term_days)->toDateString(),
-                'approval' => $project->monthlyApprovals()->where('year', $year)->where('month', $month)->first(),
+                'spans_multiple_vat_periods' => $spansMultipleVatPeriods,
+                'line_description' => $spansMultipleVatPeriods ? '' : Invoice::defaultLineDescriptionFor($project, $periodStart, $periodEnd),
+                'months' => $this->monthSummaries($project, $periodStart, $periodEnd),
             ];
         }
 
         return view('admin.invoices.create', [
             'projects' => $projects,
             'project' => $project,
-            'year' => $year,
-            'month' => $month,
+            'periodStart' => $periodStart,
+            'periodEnd' => $periodEnd,
             'monthOptions' => $this->monthOptions(),
             'proposal' => $proposal,
         ]);
@@ -92,16 +96,26 @@ class InvoiceController extends Controller
         $validated = $request->validated();
         $project = Project::query()->with('client')->findOrFail($validated['project_id']);
         $settings = Setting::current();
+        $periodStart = $request->periodStart();
+        $periodEnd = $request->periodEnd();
 
-        $subtotal = $this->uninvoicedAmount($project, $validated['period_year'], $validated['period_month']);
+        $subtotal = $this->uninvoicedAmount($project, $periodStart, $periodEnd);
+
+        if ($subtotal <= 0) {
+            throw ValidationException::withMessages([
+                'period_start' => 'Er zijn geen ongefactureerde uren in deze periode.',
+            ]);
+        }
+
         $vatAmount = round($subtotal * (float) $settings->default_vat_percentage / 100, 2);
         $sequenceNumber = $this->invoiceNumbers->sequenceNumberFor($validated['invoice_number'], $validated['invoice_date']);
 
         $invoice = Invoice::query()->create([
             'client_id' => $project->client_id,
             'project_id' => $project->id,
-            'period_year' => $validated['period_year'],
-            'period_month' => $validated['period_month'],
+            'period_start' => $periodStart,
+            'period_end' => $periodEnd,
+            'line_description' => $validated['line_description'] ?? Invoice::defaultLineDescriptionFor($project, $periodStart, $periodEnd),
             'sequence_number' => $sequenceNumber,
             'invoice_number' => $validated['invoice_number'],
             'invoice_date' => $validated['invoice_date'],
@@ -125,7 +139,7 @@ class InvoiceController extends Controller
         $invoice->loadMissing(['client', 'project']);
 
         $settings = Setting::current();
-        $subtotal = $this->uninvoicedAmount($invoice->project, $invoice->period_year, $invoice->period_month);
+        $subtotal = $this->uninvoicedAmount($invoice->project, $invoice->period_start, $invoice->period_end);
         $vatAmount = round($subtotal * (float) $settings->default_vat_percentage / 100, 2);
 
         return view('admin.invoices.edit', [
@@ -135,10 +149,8 @@ class InvoiceController extends Controller
                 'vat_percentage' => $settings->default_vat_percentage,
                 'vat_amount' => $vatAmount,
                 'total' => $subtotal + $vatAmount,
-                'approval' => $invoice->project->monthlyApprovals()
-                    ->where('year', $invoice->period_year)
-                    ->where('month', $invoice->period_month)
-                    ->first(),
+                'spans_multiple_vat_periods' => $settings->spansMultipleVatPeriods($invoice->period_start, $invoice->period_end),
+                'months' => $this->monthSummaries($invoice->project, $invoice->period_start, $invoice->period_end),
             ],
         ]);
     }
@@ -150,11 +162,12 @@ class InvoiceController extends Controller
         $validated = $request->validated();
         $settings = Setting::current();
 
-        $subtotal = $this->uninvoicedAmount($invoice->project, $invoice->period_year, $invoice->period_month);
+        $subtotal = $this->uninvoicedAmount($invoice->project, $invoice->period_start, $invoice->period_end);
         $vatAmount = round($subtotal * (float) $settings->default_vat_percentage / 100, 2);
         $sequenceNumber = $this->invoiceNumbers->sequenceNumberFor($validated['invoice_number'], $validated['invoice_date'], $invoice->id);
 
         $invoice->update([
+            'line_description' => $validated['line_description'] ?? Invoice::defaultLineDescriptionFor($invoice->project, $invoice->period_start, $invoice->period_end),
             'invoice_number' => $validated['invoice_number'],
             'invoice_date' => $validated['invoice_date'],
             'due_date' => $validated['due_date'],
@@ -199,15 +212,25 @@ class InvoiceController extends Controller
         return Storage::disk('invoices')->download($invoice->pdf_path, "{$invoice->invoice_number}.pdf");
     }
 
+    public function downloadTimesheet(Invoice $invoice): StreamedResponse
+    {
+        abort_unless($invoice->timesheet_pdf_path && Storage::disk('invoices')->exists($invoice->timesheet_pdf_path), 404);
+
+        return Storage::disk('invoices')->download($invoice->timesheet_pdf_path, "{$invoice->invoice_number}-urenspecificatie.pdf");
+    }
+
     /**
-     * Overwrite the PDF of every invoice that has one with the current layout and settings.
+     * Overwrite the invoice and timesheet PDFs of every invoice that has one with the current layout and settings.
      */
     public function regeneratePdfs(): RedirectResponse
     {
         $invoices = Invoice::query()->whereNotNull('pdf_path')->get();
 
         foreach ($invoices as $invoice) {
-            $invoice->update(['pdf_path' => $this->invoicePdfs->generate($invoice)]);
+            $invoice->update([
+                'pdf_path' => $this->invoicePdfs->generate($invoice),
+                'timesheet_pdf_path' => $this->invoicePdfs->generateTimesheet($invoice),
+            ]);
         }
 
         return redirect()
@@ -238,18 +261,14 @@ class InvoiceController extends Controller
     }
 
     /**
-     * Freeze the amounts, lock the period's time entries and generate the PDF.
+     * Freeze the amounts, lock the period's time entries and generate the invoice and timesheet PDFs.
      */
     private function finalizeDraft(Invoice $invoice): void
     {
         $invoice->loadMissing(['client', 'project']);
         $settings = Setting::current();
 
-        $entries = $invoice->project->timeEntries()
-            ->whereYear('date', $invoice->period_year)
-            ->whereMonth('date', $invoice->period_month)
-            ->whereNull('invoice_id')
-            ->get();
+        $entries = $this->uninvoicedEntries($invoice->project, $invoice->period_start, $invoice->period_end);
 
         $subtotal = $entries->sum(fn (TimeEntry $entry) => $entry->amount());
         $vatAmount = round($subtotal * (float) $settings->default_vat_percentage / 100, 2);
@@ -268,12 +287,14 @@ class InvoiceController extends Controller
                 ->update(['invoice_id' => $invoice->id]);
         });
 
-        $pdfPath = $this->invoicePdfs->generate($invoice);
-        $invoice->update(['pdf_path' => $pdfPath]);
+        $invoice->update([
+            'pdf_path' => $this->invoicePdfs->generate($invoice),
+            'timesheet_pdf_path' => $this->invoicePdfs->generateTimesheet($invoice),
+        ]);
     }
 
     /**
-     * Undo a finalization: free the locked time entries and remove the PDF, which a draft must not have.
+     * Undo a finalization: free the locked time entries and remove the PDFs, which a draft must not have.
      */
     private function releaseFinalizedInvoice(Invoice $invoice): void
     {
@@ -281,34 +302,81 @@ class InvoiceController extends Controller
             ->where('invoice_id', $invoice->id)
             ->update(['invoice_id' => null]);
 
-        if ($invoice->pdf_path) {
-            Storage::disk('invoices')->delete($invoice->pdf_path);
-            $invoice->update(['pdf_path' => null]);
-        }
+        Storage::disk('invoices')->delete(array_filter([$invoice->pdf_path, $invoice->timesheet_pdf_path]));
+        $invoice->update(['pdf_path' => null, 'timesheet_pdf_path' => null]);
     }
 
-    private function uninvoicedAmount(Project $project, int $year, int $month): float
+    /**
+     * @return Collection<int, TimeEntry>
+     */
+    private function uninvoicedEntries(Project $project, CarbonInterface $periodStart, CarbonInterface $periodEnd): Collection
     {
         return $project->timeEntries()
-            ->whereYear('date', $year)
-            ->whereMonth('date', $month)
+            ->whereBetween('date', [$periodStart->copy()->startOfMonth()->toDateString(), $periodEnd->copy()->endOfMonth()->toDateString()])
             ->whereNull('invoice_id')
-            ->get()
+            ->get();
+    }
+
+    private function uninvoicedAmount(Project $project, CarbonInterface $periodStart, CarbonInterface $periodEnd): float
+    {
+        return $this->uninvoicedEntries($project, $periodStart, $periodEnd)
             ->sum(fn (TimeEntry $entry) => $entry->amount());
     }
 
     /**
-     * @return array<int, array{year: int, month: int, label: string}>
+     * The uninvoiced hours and the approval status of each month in the period.
+     *
+     * @return array<int, array{label: string, hours: float, approval_status: ?string}>
+     */
+    private function monthSummaries(Project $project, CarbonInterface $periodStart, CarbonInterface $periodEnd): array
+    {
+        $entries = $this->uninvoicedEntries($project, $periodStart, $periodEnd);
+        $approvals = $project->monthlyApprovals()->get();
+
+        return collect(CarbonPeriod::create($periodStart->copy()->startOfMonth(), '1 month', $periodEnd->copy()->startOfMonth()))
+            ->map(fn (CarbonInterface $month) => [
+                'label' => $month->translatedFormat('F Y'),
+                'hours' => (float) $entries->filter(fn (TimeEntry $entry) => $entry->date->isSameMonth($month))->sum('hours'),
+                'approval_status' => $approvals->first(fn (MonthlyApproval $approval) => (int) $approval->year === $month->year && (int) $approval->month === $month->month)?->status,
+            ])
+            ->all();
+    }
+
+    /**
+     * The months chosen on the creation screen: "from" and "to" as Y-m, or the single "year" and "month" that other screens link with.
+     *
+     * @return array{0: Carbon, 1: Carbon}
+     */
+    private function requestedPeriod(Request $request): array
+    {
+        $singleMonth = Carbon::create((int) $request->query('year', now()->year), (int) $request->query('month', now()->month), 1);
+
+        $periodStart = $this->monthFromQuery($request->query('from')) ?? $singleMonth;
+        $periodEnd = $this->monthFromQuery($request->query('to')) ?? $periodStart->copy();
+
+        return [$periodStart, $periodEnd->lt($periodStart) ? $periodStart->copy() : $periodEnd];
+    }
+
+    private function monthFromQuery(mixed $value): ?Carbon
+    {
+        if (! is_string($value) || ! preg_match('/^\d{4}-\d{2}$/', $value)) {
+            return null;
+        }
+
+        return Carbon::createFromFormat('!Y-m', $value);
+    }
+
+    /**
+     * @return array<int, array{value: string, label: string}>
      */
     private function monthOptions(): array
     {
         return collect(range(0, 11))
             ->map(function (int $offset) {
-                $date = now()->subMonths($offset);
+                $date = now()->startOfMonth()->subMonths($offset);
 
                 return [
-                    'year' => $date->year,
-                    'month' => $date->month,
+                    'value' => $date->format('Y-m'),
                     'label' => $date->translatedFormat('F Y'),
                 ];
             })

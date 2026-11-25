@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -11,8 +12,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable([
     'client_id',
     'project_id',
-    'period_year',
-    'period_month',
+    'period_start',
+    'period_end',
+    'line_description',
     'sequence_number',
     'invoice_number',
     'invoice_date',
@@ -25,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'payment_status',
     'paid_at',
     'pdf_path',
+    'timesheet_pdf_path',
 ])]
 class Invoice extends Model
 {
@@ -34,6 +37,8 @@ class Invoice extends Model
     protected function casts(): array
     {
         return [
+            'period_start' => 'date',
+            'period_end' => 'date',
             'invoice_date' => 'date',
             'due_date' => 'date',
             'paid_at' => 'datetime',
@@ -86,5 +91,37 @@ class Invoice extends Model
         }
 
         return $this->isPaid() ? 'paid' : 'open';
+    }
+
+    /**
+     * The invoiced months, e.g. "september 2026", "januari – maart 2026" or "december 2025 – februari 2026".
+     */
+    public function periodLabel(string $monthFormat = 'F'): string
+    {
+        return static::periodLabelFor($this->period_start, $this->period_end, $monthFormat);
+    }
+
+    /**
+     * The text of the invoice line, falling back to the default for invoices that have none stored.
+     */
+    public function lineDescription(): string
+    {
+        return $this->line_description ?? static::defaultLineDescriptionFor($this->project, $this->period_start, $this->period_end);
+    }
+
+    public static function periodLabelFor(CarbonInterface $start, CarbonInterface $end, string $monthFormat = 'F'): string
+    {
+        if ($start->isSameMonth($end)) {
+            return $end->translatedFormat("{$monthFormat} Y");
+        }
+
+        $startFormat = $start->isSameYear($end) ? $monthFormat : "{$monthFormat} Y";
+
+        return $start->translatedFormat($startFormat).' – '.$end->translatedFormat("{$monthFormat} Y");
+    }
+
+    public static function defaultLineDescriptionFor(Project $project, CarbonInterface $start, CarbonInterface $end): string
+    {
+        return "{$project->name} — werkzaamheden ".static::periodLabelFor($start, $end);
     }
 }

@@ -14,4 +14,5 @@ Route::middleware(['auth', 'role:client'])->prefix('portal')->name('portal.')->g
 
     Route::get('invoices', [InvoiceController::class, 'index'])->name('invoices.index');
     Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
+    Route::get('invoices/{invoice}/timesheet', [InvoiceController::class, 'downloadTimesheet'])->name('invoices.timesheet');
 });

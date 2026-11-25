@@ -28,5 +28,6 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('invoices/regenerate-pdfs', [InvoiceController::class, 'regeneratePdfs'])->name('invoices.regenerate-pdfs');
     Route::post('invoices/{invoice}/finalize', [InvoiceController::class, 'finalize'])->name('invoices.finalize');
     Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])->name('invoices.download');
+    Route::get('invoices/{invoice}/timesheet', [InvoiceController::class, 'downloadTimesheet'])->name('invoices.timesheet');
     Route::patch('invoices/{invoice}/status', [InvoiceController::class, 'updateStatus'])->name('invoices.status.update');
 });

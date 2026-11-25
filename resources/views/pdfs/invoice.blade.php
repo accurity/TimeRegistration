@@ -1,86 +1,15 @@
 @php
     $logoBase64 = base64_encode(file_get_contents(public_path('images/logo-accurity.png')));
-    $periodLabel = ucfirst(\Illuminate\Support\Carbon::createFromDate($invoice->period_year, $invoice->period_month, 1)->translatedFormat('F Y'));
     $blendedRate = $totalHours > 0 ? round($invoice->subtotal / $totalHours, 2) : $invoice->project->rate;
 @endphp
 <!DOCTYPE html>
 <html lang="nl">
 <head>
     <meta charset="utf-8">
-    <style>
-        @font-face {
-            font-family: 'Bitter';
-            font-weight: 700;
-            font-style: normal;
-            src: url('{{ 'file://'.resource_path('fonts/Bitter.ttf') }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Calibri';
-            font-weight: 400;
-            font-style: normal;
-            src: url('{{ 'file://'.resource_path('fonts/Calibri.ttf') }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Calibri';
-            font-weight: 600;
-            font-style: normal;
-            src: url('{{ 'file://'.resource_path('fonts/Calibri.ttf') }}') format('truetype');
-        }
-        @font-face {
-            font-family: 'Calibri';
-            font-weight: 700;
-            font-style: normal;
-            src: url('{{ 'file://'.resource_path('fonts/Calibri.ttf') }}') format('truetype');
-        }
-        @page {
-            margin: 56px 60px 90px 60px;
-        }
-        body {
-            font-family: 'Calibri', sans-serif;
-            color: #0F1A21;
-            font-size: 12px;
-        }
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        .heading {
-            font-family: 'Bitter', serif;
-            font-weight: 700;
-        }
-        .footer {
-            position: fixed;
-            bottom: -70px;
-            left: 0;
-            right: 0;
-            font-size: 10.5px;
-            line-height: 10px;
-        }
-        .page-break {
-            page-break-before: always;
-        }
-    </style>
+    @include('pdfs._styles')
 </head>
 <body>
-    <div class="footer">
-        <table>
-            <tr>
-                <td style="width:40%;text-align:left;vertical-align:top">
-                    {{ $settings->company_name }}<br>
-                    {{ $settings->address }}<br>
-                    {{ $settings->postal_code }} {{ $settings->city }}
-                </td>
-                <td style="width:25%;text-align:left;vertical-align:top">
-                    @if ($settings->phone)Mobiel {{ $settings->phone }}@endif
-                </td>
-                <td style="width:35%;text-align:right;vertical-align:top">
-                    @if ($settings->kvk_number)<div>Chamber of commerce {{ $settings->kvk_number }}</div>@endif
-                    @if ($settings->btw_number)<div>VAT no. {{ $settings->btw_number }}</div>@endif
-                    @if ($settings->iban)<div>{{ $settings->iban }}</div>@endif
-                </td>
-            </tr>
-        </table>
-    </div>
+    @include('pdfs._footer')
 
     <table style="margin-bottom:40px">
         <tr>
@@ -125,8 +54,8 @@
         </tr>
         <tr>
             <td style="padding:12px;border-bottom:1px solid #DEE5EA">
-                {{ $invoice->project->name }} &mdash; werkzaamheden {{ $periodLabel }}<br>
-                <span style="color:#4A5C68;font-size:11.5px">Urenspecificatie: zie bijlage op pagina 2</span>
+                {{ $invoice->lineDescription() }}<br>
+                <span style="color:#4A5C68;font-size:11.5px">Urenspecificatie: zie aparte bijlage</span>
             </td>
             <td style="padding:12px;border-bottom:1px solid #DEE5EA;text-align:right">{{ number_format($totalHours, 2, ',', '.') }}</td>
             <td style="padding:12px;border-bottom:1px solid #DEE5EA;text-align:right">&euro; {{ number_format($blendedRate, 2, ',', '.') }}</td>
@@ -166,45 +95,6 @@
                 {{ $settings->company_name }}<br>
                 te {{ $settings->city }}
             </td>
-        </tr>
-    </table>
-
-    <div class="page-break"></div>
-
-    <table style="margin-bottom:34px">
-        <tr>
-            <td style="width:50%;vertical-align:top">
-                <img src="data:image/png;base64,{{ $logoBase64 }}" alt="Accurity" style="height:24px;width:auto;display:block">
-            </td>
-            <td style="width:50%;text-align:right;vertical-align:top;font-size:11.5px;color:#4A5C68">Bijlage bij factuur {{ $invoice->invoice_number }}</td>
-        </tr>
-    </table>
-
-    <h2 class="heading" style="margin:0 0 4px;font-size:20px;line-height:28px">Urenspecificatie {{ $periodLabel }}</h2>
-    <div style="font-size:12.5px;color:#4A5C68;margin-bottom:22px">
-        {{ $invoice->project->name }} &middot; {{ $invoice->client->name }}
-        @if ($approval && $approval->isApproved())
-            &middot; goedgekeurd op {{ $approval->approved_at->format('d-m-Y') }}
-        @endif
-    </div>
-
-    <table style="font-size:12.5px">
-        <tr style="background:#F6F8FA">
-            <td style="padding:9px 12px;border-bottom:1px solid #C3CDD4;font-weight:600;width:110px">Datum</td>
-            <td style="padding:9px 12px;border-bottom:1px solid #C3CDD4;font-weight:600">Omschrijving</td>
-            <td style="padding:9px 12px;border-bottom:1px solid #C3CDD4;font-weight:600;text-align:right;width:80px">Uren</td>
-        </tr>
-        @foreach ($timeEntries as $entry)
-            <tr>
-                <td style="padding:9px 12px;border-bottom:1px solid #EDF1F4">{{ $entry->date->format('d-m-Y') }}</td>
-                <td style="padding:9px 12px;border-bottom:1px solid #EDF1F4">{{ $entry->description }}</td>
-                <td style="padding:9px 12px;border-bottom:1px solid #EDF1F4;text-align:right">{{ number_format($entry->hours, 2, ',', '.') }}</td>
-            </tr>
-        @endforeach
-        <tr style="background:#E2F1F8">
-            <td style="padding:11px 12px;font-weight:600">Totaal</td>
-            <td></td>
-            <td style="padding:11px 12px;text-align:right;font-weight:600">{{ number_format($totalHours, 2, ',', '.') }}</td>
         </tr>
     </table>
 </body>

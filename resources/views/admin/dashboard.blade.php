@@ -79,7 +79,7 @@
                 <div class="grid grid-cols-[100px_1.3fr_1fr_110px_120px] items-center gap-3 border-b border-ink-100 px-5 py-3 text-sm last:border-b-0 dark:border-dark-border" style="font-variant-numeric: tabular-nums">
                     <div class="text-ink-900 dark:text-dark-text1">{{ $invoice->invoice_number }}</div>
                     <div class="text-ink-700 dark:text-dark-text2">{{ $invoice->client->name }}</div>
-                    <div class="text-ink-700 dark:text-dark-text2">{{ \Illuminate\Support\Carbon::createFromDate($invoice->period_year, $invoice->period_month, 1)->translatedFormat('M Y') }}</div>
+                    <div class="text-ink-700 dark:text-dark-text2">{{ $invoice->periodLabel('M') }}</div>
                     <div class="text-right text-ink-900 dark:text-dark-text1">&euro; {{ number_format($invoice->total, 2, ',', '.') }}</div>
                     <div @class(['text-status-red-fg dark:text-status-red-fg-dark' => $invoice->due_date->isPast(), 'text-ink-700 dark:text-dark-text2' => ! $invoice->due_date->isPast()])>{{ $invoice->due_date->format('d-m-Y') }}</div>
                 </div>

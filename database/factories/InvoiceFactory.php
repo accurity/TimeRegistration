@@ -26,8 +26,8 @@ class InvoiceFactory extends Factory
         return [
             'client_id' => Client::factory(),
             'project_id' => Project::factory(),
-            'period_year' => now()->year,
-            'period_month' => now()->month,
+            'period_start' => now()->startOfMonth()->toDateString(),
+            'period_end' => now()->startOfMonth()->toDateString(),
             'sequence_number' => fake()->unique()->numberBetween(101, 999),
             'invoice_number' => fake()->unique()->numerify('###2620-ABC'),
             'invoice_date' => now()->toDateString(),

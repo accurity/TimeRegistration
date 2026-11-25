@@ -43,20 +43,23 @@ class InvoiceTest extends TestCase
         $response->assertSee('1012620-ABC');
     }
 
-    public function test_a_non_blocking_warning_is_shown_when_the_month_is_not_approved(): void
+    public function test_the_creation_screen_shows_a_neutral_approval_status_per_month_without_a_warning(): void
     {
         $client = Client::factory()->create();
         $project = Project::factory()->create(['client_id' => $client->id]);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-08-05']);
         TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05']);
+        MonthlyApproval::factory()->create(['project_id' => $project->id, 'year' => 2026, 'month' => 8, 'status' => 'approved']);
 
         $response = $this->actingAs($this->admin())->get('/admin/invoices/create?'.http_build_query([
             'project_id' => $project->id,
-            'year' => 2026,
-            'month' => 9,
+            'from' => '2026-08',
+            'to' => '2026-09',
         ]));
 
         $response->assertOk();
-        $response->assertSee('nog niet ter goedkeuring aangeboden');
+        $response->assertSeeInOrder(['goedgekeurd', 'niet ingediend']);
+        $response->assertDontSee('Let op:');
     }
 
     public function test_admin_can_save_a_draft_invoice_with_the_proposed_values(): void
@@ -68,8 +71,8 @@ class InvoiceTest extends TestCase
 
         $response = $this->actingAs($this->admin())->post('/admin/invoices', [
             'project_id' => $project->id,
-            'period_year' => 2026,
-            'period_month' => 9,
+            'period_start' => '2026-09',
+            'period_end' => '2026-09',
             'invoice_number' => '1012620-ABC',
             'invoice_date' => '2026-10-01',
             'due_date' => '2026-10-15',
@@ -91,11 +94,12 @@ class InvoiceTest extends TestCase
     public function test_the_sequence_number_of_a_new_draft_follows_a_manually_entered_invoice_number(): void
     {
         $project = Project::factory()->create();
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05']);
 
         $response = $this->actingAs($this->admin())->post('/admin/invoices', [
             'project_id' => $project->id,
-            'period_year' => 2026,
-            'period_month' => 9,
+            'period_start' => '2026-09',
+            'period_end' => '2026-09',
             'invoice_number' => '1042620-INZ',
             'invoice_date' => '2026-10-01',
             'due_date' => '2026-10-15',
@@ -127,8 +131,8 @@ class InvoiceTest extends TestCase
 
         $response = $this->actingAs($this->admin())->post('/admin/invoices', [
             'project_id' => $project->id,
-            'period_year' => 2026,
-            'period_month' => 9,
+            'period_start' => '2026-09',
+            'period_end' => '2026-09',
             'invoice_number' => 'DUPLICATE-1',
             'invoice_date' => '2026-10-01',
             'due_date' => '2026-10-15',
@@ -201,8 +205,8 @@ class InvoiceTest extends TestCase
         $invoice = Invoice::factory()->create([
             'client_id' => $client->id,
             'project_id' => $project->id,
-            'period_year' => 2026,
-            'period_month' => 9,
+            'period_start' => '2026-09-01',
+            'period_end' => '2026-09-01',
             'invoice_number' => '1012620-ABC',
             'invoice_date' => '2026-10-01',
             'status' => 'draft',
@@ -226,6 +230,8 @@ class InvoiceTest extends TestCase
 
         Storage::disk('invoices')->assertExists($invoice->pdf_path);
         $this->assertSame('2026/1012620-ABC.pdf', $invoice->pdf_path);
+        Storage::disk('invoices')->assertExists($invoice->timesheet_pdf_path);
+        $this->assertSame('2026/1012620-ABC-urenspecificatie.pdf', $invoice->timesheet_pdf_path);
     }
 
     public function test_finalize_is_blocked_for_a_non_draft_invoice(): void
@@ -246,9 +252,7 @@ class InvoiceTest extends TestCase
         $html = view('pdfs.invoice', [
             'invoice' => $invoice,
             'settings' => $settings,
-            'timeEntries' => collect(),
             'totalHours' => 0,
-            'approval' => null,
         ])->render();
 
         $this->assertStringContainsString('Binnen 28 dagen na factuurdatum van 07-07-2026', $html);
@@ -262,6 +266,7 @@ class InvoiceTest extends TestCase
         Storage::fake('invoices');
         Storage::disk('invoices')->put('2026/FINAL-1.pdf', 'old final');
         Storage::disk('invoices')->put('2026/CANCELLED-1.pdf', 'old cancelled');
+        Storage::disk('invoices')->put('2026/FINAL-1-urenspecificatie.pdf', 'old timesheet');
 
         $final = Invoice::factory()->final()->paid()->create(['invoice_number' => 'FINAL-1', 'invoice_date' => '2026-10-01', 'pdf_path' => '2026/FINAL-1.pdf', 'total' => 605]);
         $cancelled = Invoice::factory()->cancelled()->create(['invoice_number' => 'CANCELLED-1', 'invoice_date' => '2026-10-01', 'pdf_path' => '2026/CANCELLED-1.pdf']);
@@ -274,12 +279,15 @@ class InvoiceTest extends TestCase
 
         $this->assertStringStartsWith('%PDF', Storage::disk('invoices')->get('2026/FINAL-1.pdf'));
         $this->assertStringStartsWith('%PDF', Storage::disk('invoices')->get('2026/CANCELLED-1.pdf'));
+        $this->assertStringStartsWith('%PDF', Storage::disk('invoices')->get('2026/FINAL-1-urenspecificatie.pdf'));
+        $this->assertStringStartsWith('%PDF', Storage::disk('invoices')->get('2026/CANCELLED-1-urenspecificatie.pdf'));
         Storage::disk('invoices')->assertMissing('2026/DRAFT-1.pdf');
 
         $final->refresh();
         $this->assertSame('final', $final->status);
         $this->assertSame('paid', $final->payment_status);
         $this->assertSame('605.00', $final->total);
+        $this->assertSame('2026/FINAL-1-urenspecificatie.pdf', $final->timesheet_pdf_path);
         $this->assertSame('cancelled', $cancelled->fresh()->status);
         $this->assertNull($draft->fresh()->pdf_path);
     }
@@ -404,7 +412,7 @@ class InvoiceTest extends TestCase
         Storage::fake('invoices');
 
         $project = Project::factory()->create();
-        $invoice = Invoice::factory()->create(['project_id' => $project->id, 'client_id' => $project->client_id, 'period_year' => 2026, 'period_month' => 9, 'status' => 'draft']);
+        $invoice = Invoice::factory()->create(['project_id' => $project->id, 'client_id' => $project->client_id, 'period_start' => '2026-09-01', 'period_end' => '2026-09-01', 'status' => 'draft']);
         $entry = TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05', 'hours' => '2.00', 'rate' => 100]);
 
         $this->setStatus($invoice, 'open');
@@ -435,9 +443,10 @@ class InvoiceTest extends TestCase
     {
         Storage::fake('invoices');
         Storage::disk('invoices')->put('2026/TEST-1.pdf', '%PDF-1.4 fake content');
+        Storage::disk('invoices')->put('2026/TEST-1-urenspecificatie.pdf', '%PDF-1.4 fake content');
 
         $project = Project::factory()->create();
-        $invoice = Invoice::factory()->final()->paid()->create(['project_id' => $project->id, 'pdf_path' => '2026/TEST-1.pdf']);
+        $invoice = Invoice::factory()->final()->paid()->create(['project_id' => $project->id, 'pdf_path' => '2026/TEST-1.pdf', 'timesheet_pdf_path' => '2026/TEST-1-urenspecificatie.pdf']);
         $entry = TimeEntry::factory()->create(['project_id' => $project->id]);
         TimeEntry::query()->whereKey($entry->id)->update(['invoice_id' => $invoice->id]);
 
@@ -450,6 +459,8 @@ class InvoiceTest extends TestCase
         $this->assertNull($invoice->pdf_path);
         $this->assertNull($entry->fresh()->invoice_id);
         Storage::disk('invoices')->assertMissing('2026/TEST-1.pdf');
+        $this->assertNull($invoice->timesheet_pdf_path);
+        Storage::disk('invoices')->assertMissing('2026/TEST-1-urenspecificatie.pdf');
     }
 
     public function test_an_unknown_status_is_rejected(): void
@@ -474,9 +485,9 @@ class InvoiceTest extends TestCase
 
     public function test_the_overview_sorts_on_period_descending_by_default_and_toggles_to_ascending(): void
     {
-        Invoice::factory()->create(['invoice_number' => 'PERIOD-AUG', 'period_year' => 2026, 'period_month' => 8]);
-        Invoice::factory()->create(['invoice_number' => 'PERIOD-DEC-2025', 'period_year' => 2025, 'period_month' => 12]);
-        Invoice::factory()->create(['invoice_number' => 'PERIOD-SEP', 'period_year' => 2026, 'period_month' => 9]);
+        Invoice::factory()->create(['invoice_number' => 'PERIOD-AUG', 'period_start' => '2026-08-01', 'period_end' => '2026-08-01']);
+        Invoice::factory()->create(['invoice_number' => 'PERIOD-DEC-2025', 'period_start' => '2025-12-01', 'period_end' => '2025-12-01']);
+        Invoice::factory()->create(['invoice_number' => 'PERIOD-SEP', 'period_start' => '2026-09-01', 'period_end' => '2026-09-01']);
 
         $admin = $this->admin();
 
@@ -494,7 +505,7 @@ class InvoiceTest extends TestCase
         $client = Client::factory()->withoutApproval()->create();
         $project = Project::factory()->create(['client_id' => $client->id]);
         TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05']);
-        $invoice = Invoice::factory()->create(['client_id' => $client->id, 'project_id' => $project->id, 'period_year' => 2026, 'period_month' => 9]);
+        $invoice = Invoice::factory()->create(['client_id' => $client->id, 'project_id' => $project->id, 'period_start' => '2026-09-01', 'period_end' => '2026-09-01']);
 
         $admin = $this->admin();
 
@@ -518,5 +529,256 @@ class InvoiceTest extends TestCase
 
         $response->assertOk();
         $response->assertSeeInOrder(['>Concept</span>', '>Openstaand</span>', '>Betaald</span>', '>Geannuleerd</span>'], false);
+    }
+
+    public function test_the_creation_screen_sums_the_uninvoiced_hours_of_all_months_in_the_range(): void
+    {
+        $project = Project::factory()->create(['rate' => 100]);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-07-31', 'hours' => '9.00', 'rate' => 100]);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-08-01', 'hours' => '2.00', 'rate' => 100]);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-30', 'hours' => '3.00', 'rate' => 100]);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-10-01', 'hours' => '9.00', 'rate' => 100]);
+
+        $response = $this->actingAs($this->admin())->get('/admin/invoices/create?'.http_build_query([
+            'project_id' => $project->id,
+            'from' => '2026-08',
+            'to' => '2026-09',
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('500,00');
+        $response->assertSee('name="period_start" value="2026-08"', false);
+        $response->assertSee('name="period_end" value="2026-09"', false);
+    }
+
+    public function test_the_creation_screen_proposes_the_default_line_text_within_one_vat_period(): void
+    {
+        $project = Project::factory()->create(['name' => 'Datamigratie']);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-07-05']);
+
+        $response = $this->actingAs($this->admin())->get('/admin/invoices/create?'.http_build_query([
+            'project_id' => $project->id,
+            'from' => '2026-07',
+            'to' => '2026-09',
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('value="Datamigratie — werkzaamheden juli – september 2026"', false);
+        $response->assertDontSee('meer dan één btw-periode');
+    }
+
+    public function test_the_creation_screen_asks_for_the_line_text_when_the_range_spans_vat_periods(): void
+    {
+        $project = Project::factory()->create(['name' => 'Datamigratie']);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05']);
+
+        $response = $this->actingAs($this->admin())->get('/admin/invoices/create?'.http_build_query([
+            'project_id' => $project->id,
+            'from' => '2026-09',
+            'to' => '2026-10',
+        ]));
+
+        $response->assertOk();
+        $response->assertSee('meer dan één btw-periode');
+        $response->assertDontSee('werkzaamheden september – oktober 2026');
+    }
+
+    public function test_admin_can_save_a_draft_invoice_over_several_months(): void
+    {
+        $project = Project::factory()->create(['name' => 'Datamigratie', 'rate' => 100]);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-07-05', 'hours' => '1.00', 'rate' => 100]);
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05', 'hours' => '2.00', 'rate' => 100]);
+
+        $response = $this->actingAs($this->admin())->post('/admin/invoices', [
+            'project_id' => $project->id,
+            'period_start' => '2026-07',
+            'period_end' => '2026-09',
+            'line_description' => '',
+            'invoice_number' => '1012620-ABC',
+            'invoice_date' => '2026-10-01',
+            'due_date' => '2026-10-15',
+        ]);
+
+        $response->assertSessionHasNoErrors();
+        $invoice = Invoice::query()->sole();
+        $this->assertSame('2026-07-01', $invoice->period_start->toDateString());
+        $this->assertSame('2026-09-01', $invoice->period_end->toDateString());
+        $this->assertSame('300.00', $invoice->subtotal);
+        $this->assertSame('Datamigratie — werkzaamheden juli – september 2026', $invoice->line_description);
+    }
+
+    public function test_the_line_text_is_required_when_the_range_spans_vat_periods(): void
+    {
+        $project = Project::factory()->create();
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05']);
+
+        $payload = [
+            'project_id' => $project->id,
+            'period_start' => '2026-09',
+            'period_end' => '2026-10',
+            'invoice_number' => '1012620-ABC',
+            'invoice_date' => '2026-11-01',
+            'due_date' => '2026-11-15',
+        ];
+
+        $this->actingAs($this->admin())->post('/admin/invoices', $payload)->assertSessionHasErrors('line_description');
+        $this->assertSame(0, Invoice::query()->count());
+
+        $this->actingAs($this->admin())->post('/admin/invoices', [...$payload, 'line_description' => 'Advieswerkzaamheden'])->assertSessionHasNoErrors();
+        $this->assertSame('Advieswerkzaamheden', Invoice::query()->sole()->line_description);
+    }
+
+    public function test_with_monthly_vat_periods_two_months_span_vat_periods(): void
+    {
+        Setting::current()->update(['vat_period' => 'month']);
+        $project = Project::factory()->create();
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-07-05']);
+
+        $response = $this->actingAs($this->admin())->post('/admin/invoices', [
+            'project_id' => $project->id,
+            'period_start' => '2026-07',
+            'period_end' => '2026-08',
+            'invoice_number' => '1012620-ABC',
+            'invoice_date' => '2026-09-01',
+            'due_date' => '2026-09-15',
+        ]);
+
+        $response->assertSessionHasErrors('line_description');
+    }
+
+    public function test_a_draft_cannot_be_saved_without_uninvoiced_hours_in_the_range(): void
+    {
+        $project = Project::factory()->create();
+        $invoiced = Invoice::factory()->final()->create(['project_id' => $project->id, 'client_id' => $project->client_id]);
+        $entry = TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05']);
+        TimeEntry::query()->whereKey($entry->id)->update(['invoice_id' => $invoiced->id]);
+
+        $response = $this->actingAs($this->admin())->post('/admin/invoices', [
+            'project_id' => $project->id,
+            'period_start' => '2026-08',
+            'period_end' => '2026-09',
+            'invoice_number' => '1012620-ABC',
+            'invoice_date' => '2026-10-01',
+            'due_date' => '2026-10-15',
+        ]);
+
+        $response->assertSessionHasErrors('period_start');
+        $this->assertSame(1, Invoice::query()->count());
+    }
+
+    public function test_the_end_month_cannot_be_before_the_start_month(): void
+    {
+        $project = Project::factory()->create();
+        TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05']);
+
+        $response = $this->actingAs($this->admin())->post('/admin/invoices', [
+            'project_id' => $project->id,
+            'period_start' => '2026-09',
+            'period_end' => '2026-08',
+            'invoice_number' => '1012620-ABC',
+            'invoice_date' => '2026-10-01',
+            'due_date' => '2026-10-15',
+        ]);
+
+        $response->assertSessionHasErrors('period_end');
+    }
+
+    public function test_the_line_text_of_a_draft_can_be_changed_but_not_emptied_when_it_spans_vat_periods(): void
+    {
+        $invoice = Invoice::factory()->create(['status' => 'draft', 'period_start' => '2026-09-01', 'period_end' => '2026-10-01', 'line_description' => 'Oud']);
+        $payload = ['invoice_number' => $invoice->invoice_number, 'invoice_date' => '2026-11-01', 'due_date' => '2026-11-15'];
+
+        $this->actingAs($this->admin())->put("/admin/invoices/{$invoice->id}", [...$payload, 'line_description' => ''])->assertSessionHasErrors('line_description');
+        $this->actingAs($this->admin())->put("/admin/invoices/{$invoice->id}", [...$payload, 'line_description' => 'Nieuw'])->assertSessionHasNoErrors();
+
+        $this->assertSame('Nieuw', $invoice->fresh()->line_description);
+    }
+
+    public function test_finalizing_a_draft_over_several_months_locks_only_the_entries_in_the_range(): void
+    {
+        Storage::fake('invoices');
+
+        $project = Project::factory()->create(['rate' => 100]);
+        $before = TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-06-30', 'hours' => '1.00', 'rate' => 100]);
+        $first = TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-07-01', 'hours' => '1.00', 'rate' => 100]);
+        $last = TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-30', 'hours' => '2.00', 'rate' => 100]);
+        $after = TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-10-01', 'hours' => '1.00', 'rate' => 100]);
+        $invoice = Invoice::factory()->create([
+            'client_id' => $project->client_id,
+            'project_id' => $project->id,
+            'period_start' => '2026-07-01',
+            'period_end' => '2026-09-01',
+            'status' => 'draft',
+        ]);
+
+        $this->actingAs($this->admin())->post("/admin/invoices/{$invoice->id}/finalize");
+
+        $invoice->refresh();
+        $this->assertSame('300.00', $invoice->subtotal);
+        $this->assertSame($invoice->id, $first->fresh()->invoice_id);
+        $this->assertSame($invoice->id, $last->fresh()->invoice_id);
+        $this->assertNull($before->fresh()->invoice_id);
+        $this->assertNull($after->fresh()->invoice_id);
+    }
+
+    public function test_the_invoice_pdf_shows_the_line_text_and_no_timesheet(): void
+    {
+        $invoice = Invoice::factory()->final()->create(['line_description' => 'Advieswerkzaamheden Q3 en Q4']);
+
+        $html = view('pdfs.invoice', [
+            'invoice' => $invoice,
+            'settings' => Setting::current(),
+            'totalHours' => 5,
+        ])->render();
+
+        $this->assertStringContainsString('Advieswerkzaamheden Q3 en Q4', $html);
+        $this->assertStringNotContainsString('pagina 2', $html);
+        $this->assertStringNotContainsString('page-break', $html);
+    }
+
+    public function test_the_timesheet_pdf_groups_the_hours_per_month_without_an_approval_note(): void
+    {
+        $project = Project::factory()->create();
+        $invoice = Invoice::factory()->final()->create(['project_id' => $project->id, 'client_id' => $project->client_id, 'period_start' => '2026-08-01', 'period_end' => '2026-09-01']);
+        $entries = collect([
+            TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-08-05', 'hours' => '1.50', 'description' => 'Augustuswerk']),
+            TimeEntry::factory()->create(['project_id' => $project->id, 'date' => '2026-09-05', 'hours' => '2.25', 'description' => 'Septemberwerk']),
+        ]);
+        MonthlyApproval::factory()->create(['project_id' => $project->id, 'year' => 2026, 'month' => 8, 'status' => 'approved', 'approved_at' => now()]);
+
+        $html = view('pdfs.timesheet', [
+            'invoice' => $invoice,
+            'settings' => Setting::current(),
+            'timeEntriesPerMonth' => $entries->groupBy(fn (TimeEntry $entry) => $entry->date->format('Y-m')),
+            'totalHours' => 3.75,
+        ])->render();
+
+        $this->assertStringContainsString('Urenspecificatie augustus – september 2026', $html);
+        $this->assertStringContainsString("Bijlage bij factuur {$invoice->invoice_number}", $html);
+        $this->assertMatchesRegularExpression('/Augustus 2026.*Augustuswerk.*Subtotaal augustus 2026.*1,50.*September 2026.*Septemberwerk.*Subtotaal september 2026.*2,25.*Totaal.*3,75/s', $html);
+        $this->assertStringNotContainsString('goedgekeurd', $html);
+    }
+
+    public function test_admin_can_download_the_timesheet_pdf(): void
+    {
+        Storage::fake('invoices');
+        Storage::disk('invoices')->put('2026/TEST-1-urenspecificatie.pdf', '%PDF-1.4 fake content');
+        $invoice = Invoice::factory()->final()->create(['invoice_number' => 'TEST-1', 'timesheet_pdf_path' => '2026/TEST-1-urenspecificatie.pdf']);
+
+        $response = $this->actingAs($this->admin())->get("/admin/invoices/{$invoice->id}/timesheet");
+
+        $response->assertOk();
+        $response->assertDownload('TEST-1-urenspecificatie.pdf');
+    }
+
+    public function test_the_overview_shows_the_period_range_and_sorts_on_the_end_month(): void
+    {
+        Invoice::factory()->create(['invoice_number' => 'RANGE-1', 'period_start' => '2025-12-01', 'period_end' => '2026-02-01']);
+        Invoice::factory()->create(['invoice_number' => 'SINGLE-1', 'period_start' => '2026-01-01', 'period_end' => '2026-01-01']);
+
+        $response = $this->actingAs($this->admin())->get('/admin/invoices');
+
+        $response->assertSeeInOrder(['RANGE-1', 'SINGLE-1']);
+        $response->assertSee('dec. 2025 – feb. 2026');
     }
 }

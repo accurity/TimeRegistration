@@ -47,7 +47,7 @@
                 <div class="text-ink-900 dark:text-dark-text1">{{ $invoice->invoice_number }}</div>
                 <div class="text-ink-700 dark:text-dark-text2">{{ $invoice->client->name }}</div>
                 <div class="text-ink-700 dark:text-dark-text2">{{ $invoice->project->name }}</div>
-                <div class="text-ink-700 dark:text-dark-text2">{{ \Illuminate\Support\Carbon::createFromDate($invoice->period_year, $invoice->period_month, 1)->translatedFormat('M Y') }}</div>
+                <div class="text-ink-700 dark:text-dark-text2">{{ $invoice->periodLabel('M') }}</div>
                 <div class="text-right text-ink-900 dark:text-dark-text1">&euro; {{ number_format($invoice->total, 2, ',', '.') }}</div>
                 <div><x-invoice-status-badge :status="$invoice->status" :payment-status="$invoice->payment_status" /></div>
                 <div class="flex items-center justify-end gap-2 whitespace-nowrap">
@@ -55,6 +55,9 @@
                         <a href="{{ route('admin.invoices.edit', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Bewerken</a>
                     @elseif ($invoice->pdf_path)
                         <a href="{{ route('admin.invoices.download', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">PDF</a>
+                        @if ($invoice->timesheet_pdf_path)
+                            <a href="{{ route('admin.invoices.timesheet', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Uren</a>
+                        @endif
                     @endif
                     <form method="POST" action="{{ route('admin.invoices.status.update', $invoice) }}">
                         @csrf

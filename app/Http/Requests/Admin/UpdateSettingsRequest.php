@@ -33,6 +33,7 @@ class UpdateSettingsRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:50'],
             'default_payment_term_days' => ['required', 'integer', 'min:1', 'max:365'],
             'default_vat_percentage' => ['required', 'numeric', 'min:0', 'max:100'],
+            'vat_period' => ['required', 'in:month,quarter,year'],
         ];
     }
 }
