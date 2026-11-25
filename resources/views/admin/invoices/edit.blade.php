@@ -1,37 +1,34 @@
-@php
-    $periodLabel = \Illuminate\Support\Carbon::createFromDate($invoice->period_year, $invoice->period_month, 1)->translatedFormat('F Y');
-@endphp
 <x-admin-layout>
     <div class="mb-[22px]">
         <p class="mb-1 text-[13px] text-ink-500 dark:text-dark-text2">
             <a href="{{ route('admin.invoices.index') }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Facturen</a>
         </p>
         <h1 class="mb-1 font-display text-[28px] font-bold leading-9 text-ink-900 dark:text-dark-text1">Conceptfactuur bewerken</h1>
-        <p class="text-[13px] text-ink-500 dark:text-dark-text2">{{ $invoice->client->name }} — {{ $invoice->project->name }} — {{ $periodLabel }}</p>
+        <p class="text-[13px] text-ink-500 dark:text-dark-text2">{{ $invoice->client->name }} — {{ $invoice->project->name }} — {{ $invoice->periodLabel() }}</p>
     </div>
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
-
-    @if (! $invoice->client->requires_approval)
-    @elseif ($proposal['approval'] && ! $proposal['approval']->isApproved())
-        <div class="mb-[14px] max-w-2xl rounded-md border border-status-amber-border bg-status-amber-bg px-4 py-3 text-[13px] text-status-amber-fg dark:border-status-amber-border-dark dark:bg-status-amber-bg-dark dark:text-status-amber-fg-dark">
-            Let op: de uren van deze periode zijn nog niet goedgekeurd door de klant.
-        </div>
-    @elseif (! $proposal['approval'])
-        <div class="mb-[14px] max-w-2xl rounded-md border border-status-amber-border bg-status-amber-bg px-4 py-3 text-[13px] text-status-amber-fg dark:border-status-amber-border-dark dark:bg-status-amber-bg-dark dark:text-status-amber-fg-dark">
-            Let op: deze periode is nog niet ter goedkeuring aangeboden aan de klant.
-        </div>
-    @endif
 
     <div class="max-w-2xl rounded-md border border-ink-200 bg-white dark:border-dark-border dark:bg-dark-surface1">
         <form method="POST" action="{{ route('admin.invoices.update', $invoice) }}" class="px-[22px] py-5">
             @csrf
             @method('PUT')
 
+            @include('admin.invoices._months', ['months' => $proposal['months'], 'showApprovalStatus' => $invoice->client->requires_approval])
+
             <div class="mb-[14px] grid gap-[9px] rounded-md bg-ink-50 px-4 py-3 text-sm dark:bg-dark-surface2" style="font-variant-numeric: tabular-nums">
                 <div class="flex justify-between"><span class="text-ink-700 dark:text-dark-text2">Subtotaal</span><span class="text-ink-900 dark:text-dark-text1">&euro; {{ number_format($proposal['subtotal'], 2, ',', '.') }}</span></div>
                 <div class="flex justify-between"><span class="text-ink-700 dark:text-dark-text2">BTW ({{ number_format($proposal['vat_percentage'], 0) }}%)</span><span class="text-ink-900 dark:text-dark-text1">&euro; {{ number_format($proposal['vat_amount'], 2, ',', '.') }}</span></div>
                 <div class="flex justify-between border-t border-ink-200 pt-[9px] font-semibold text-ink-900 dark:border-dark-border dark:text-dark-text1"><span>Totaal</span><span>&euro; {{ number_format($proposal['total'], 2, ',', '.') }}</span></div>
+            </div>
+
+            <div class="mb-[14px]">
+                <x-input-label for="line_description" value="Tekst op de factuurregel" />
+                <x-text-input id="line_description" name="line_description" type="text" class="block w-full" value="{{ old('line_description', $invoice->lineDescription()) }}" :required="$proposal['spans_multiple_vat_periods']" />
+                @if ($proposal['spans_multiple_vat_periods'])
+                    <p class="mt-1 text-[12px] text-ink-500 dark:text-dark-text2">De periode loopt over meer dan één btw-periode. Vul in wat er op de factuurregel moet staan.</p>
+                @endif
+                <x-input-error :messages="$errors->get('line_description')" class="mt-2" />
             </div>
 
             <div class="mb-[14px]">
@@ -74,7 +71,7 @@
 
     <div class="mt-[14px] max-w-2xl rounded-md border border-ink-200 bg-white px-[22px] py-5 dark:border-dark-border dark:bg-dark-surface1">
         <h3 class="mb-1 font-display text-base font-bold leading-6 text-ink-900 dark:text-dark-text1">Definitief maken</h3>
-        <p class="mb-[14px] text-[13px] leading-5 text-ink-700 dark:text-dark-text2">De bedragen worden bevroren, de uren van deze periode worden vergrendeld en de PDF wordt gegenereerd. Terugdraaien kan daarna via de status op het factuuroverzicht.</p>
+        <p class="mb-[14px] text-[13px] leading-5 text-ink-700 dark:text-dark-text2">De bedragen worden bevroren, de uren van deze periode worden vergrendeld en de factuur en urenspecificatie worden als PDF gegenereerd. Terugdraaien kan daarna via de status op het factuuroverzicht.</p>
         <form method="POST" action="{{ route('admin.invoices.finalize', $invoice) }}" onsubmit="return confirm('Deze factuur definitief maken? De uren worden vergrendeld.')">
             @csrf
             <x-primary-button>Definitief maken</x-primary-button>

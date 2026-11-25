@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Model;
     'phone',
     'default_payment_term_days',
     'default_vat_percentage',
+    'vat_period',
 ])]
 class Setting extends Model
 {
@@ -40,5 +42,17 @@ class Setting extends Model
             'default_payment_term_days' => 'integer',
             'default_vat_percentage' => 'decimal:2',
         ];
+    }
+
+    /**
+     * Whether the months from start to end fall in more than one VAT return period.
+     */
+    public function spansMultipleVatPeriods(CarbonInterface $start, CarbonInterface $end): bool
+    {
+        return match ($this->vat_period) {
+            'month' => ! $start->isSameMonth($end),
+            'year' => ! $start->isSameYear($end),
+            default => ! $start->isSameQuarter($end),
+        };
     }
 }

@@ -53,6 +53,7 @@ class SettingsTest extends TestCase
             'phone' => '+31 (0)62 256 7217',
             'default_payment_term_days' => 14,
             'default_vat_percentage' => 21,
+            'vat_period' => 'quarter',
         ]);
 
         $response->assertSessionHasNoErrors();
@@ -84,6 +85,7 @@ class SettingsTest extends TestCase
             'iban' => 'NL91ABNA0417164300',
             'default_payment_term_days' => 30,
             'default_vat_percentage' => 9,
+            'vat_period' => 'month',
         ]);
 
         $response->assertSessionHasNoErrors();
@@ -94,6 +96,7 @@ class SettingsTest extends TestCase
         $this->assertSame('Nieuwegein', $setting->city);
         $this->assertSame(30, $setting->default_payment_term_days);
         $this->assertSame('9.00', (string) $setting->default_vat_percentage);
+        $this->assertSame('month', $setting->vat_period);
     }
 
     public function test_settings_require_company_name_and_address(): void
@@ -107,6 +110,7 @@ class SettingsTest extends TestCase
             'city' => 'Nieuwegein',
             'default_payment_term_days' => 14,
             'default_vat_percentage' => 21,
+            'vat_period' => 'quarter',
         ]);
 
         $response->assertSessionHasErrors(['company_name', 'address']);
@@ -123,6 +127,7 @@ class SettingsTest extends TestCase
             'city' => 'Nieuwegein',
             'default_payment_term_days' => 14,
             'default_vat_percentage' => 150,
+            'vat_period' => 'quarter',
         ]);
 
         $response->assertSessionHasErrors(['default_vat_percentage']);
@@ -136,5 +141,22 @@ class SettingsTest extends TestCase
         $response = $this->actingAs($admin)->get('/admin/settings');
 
         $response->assertSee('Accurity');
+    }
+
+    public function test_the_vat_period_must_be_month_quarter_or_year(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->put('/admin/settings', [
+            'company_name' => 'Accurity',
+            'address' => 'Havenweg 44',
+            'postal_code' => '3421 AB',
+            'city' => 'Nieuwegein',
+            'default_payment_term_days' => 30,
+            'default_vat_percentage' => 21,
+            'vat_period' => 'week',
+        ]);
+
+        $response->assertSessionHasErrors(['vat_period']);
     }
 }

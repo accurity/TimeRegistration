@@ -28,10 +28,20 @@ class InvoiceController extends Controller
 
     public function download(Request $request, Invoice $invoice): StreamedResponse
     {
+        return $this->downloadFile($request, $invoice, $invoice->pdf_path, "{$invoice->invoice_number}.pdf");
+    }
+
+    public function downloadTimesheet(Request $request, Invoice $invoice): StreamedResponse
+    {
+        return $this->downloadFile($request, $invoice, $invoice->timesheet_pdf_path, "{$invoice->invoice_number}-urenspecificatie.pdf");
+    }
+
+    private function downloadFile(Request $request, Invoice $invoice, ?string $path, string $fileName): StreamedResponse
+    {
         abort_unless($request->user()->client_id === $invoice->client_id, 404);
         abort_unless(in_array($invoice->status, ['final', 'cancelled'], true), 404);
-        abort_unless($invoice->pdf_path && Storage::disk('invoices')->exists($invoice->pdf_path), 404);
+        abort_unless($path && Storage::disk('invoices')->exists($path), 404);
 
-        return Storage::disk('invoices')->download($invoice->pdf_path, "{$invoice->invoice_number}.pdf");
+        return Storage::disk('invoices')->download($path, $fileName);
     }
 }

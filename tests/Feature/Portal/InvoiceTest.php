@@ -66,8 +66,8 @@ class InvoiceTest extends TestCase
             'client_id' => $client->id,
             'project_id' => $project->id,
             'invoice_number' => '1012620-ABC',
-            'period_year' => 2026,
-            'period_month' => 9,
+            'period_start' => '2026-09-01',
+            'period_end' => '2026-09-01',
             'total' => 1234.56,
             'payment_status' => 'open',
         ]);
@@ -129,6 +129,42 @@ class InvoiceTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->clientUserFor($client))->get("/portal/invoices/{$invoice->id}/download");
+
+        $response->assertNotFound();
+    }
+
+    public function test_a_client_user_can_download_the_timesheet_of_their_own_invoice(): void
+    {
+        Storage::fake('invoices');
+        Storage::disk('invoices')->put('2026/OWN-1-urenspecificatie.pdf', '%PDF-1.4 fake content');
+        $client = Client::factory()->create();
+        $project = Project::factory()->create(['client_id' => $client->id]);
+        $invoice = Invoice::factory()->final()->create([
+            'client_id' => $client->id,
+            'project_id' => $project->id,
+            'invoice_number' => 'OWN-1',
+            'timesheet_pdf_path' => '2026/OWN-1-urenspecificatie.pdf',
+        ]);
+
+        $response = $this->actingAs($this->clientUserFor($client))->get("/portal/invoices/{$invoice->id}/timesheet");
+
+        $response->assertOk();
+        $response->assertDownload('OWN-1-urenspecificatie.pdf');
+    }
+
+    public function test_a_client_user_cannot_download_the_timesheet_of_another_clients_invoice(): void
+    {
+        Storage::fake('invoices');
+        Storage::disk('invoices')->put('2026/OTHER-1-urenspecificatie.pdf', '%PDF-1.4 fake content');
+        $client = Client::factory()->create();
+        $otherProject = Project::factory()->create();
+        $invoice = Invoice::factory()->final()->create([
+            'client_id' => $otherProject->client_id,
+            'project_id' => $otherProject->id,
+            'timesheet_pdf_path' => '2026/OTHER-1-urenspecificatie.pdf',
+        ]);
+
+        $response = $this->actingAs($this->clientUserFor($client))->get("/portal/invoices/{$invoice->id}/timesheet");
 
         $response->assertNotFound();
     }

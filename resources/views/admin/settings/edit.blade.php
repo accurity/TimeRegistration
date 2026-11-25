@@ -77,6 +77,15 @@
                     <x-text-input id="default_vat_percentage" name="default_vat_percentage" type="number" min="0" max="100" step="0.01" class="block w-full" :value="old('default_vat_percentage', $setting->default_vat_percentage)" required />
                     <x-input-error :messages="$errors->get('default_vat_percentage')" class="mt-2" />
                 </div>
+                <div>
+                    <x-input-label for="vat_period" value="Btw-aangifteperiode" />
+                    <x-select-input id="vat_period" name="vat_period" class="block w-full" required>
+                        @foreach (['month' => 'Maand', 'quarter' => 'Kwartaal', 'year' => 'Jaar'] as $value => $label)
+                            <option value="{{ $value }}" @selected(old('vat_period', $setting->vat_period ?? 'quarter') === $value)>{{ $label }}</option>
+                        @endforeach
+                    </x-select-input>
+                    <x-input-error :messages="$errors->get('vat_period')" class="mt-2" />
+                </div>
             </div>
 
             <div class="flex gap-[10px] border-t border-ink-100 pt-[18px] dark:border-dark-border">

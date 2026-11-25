@@ -19,12 +19,15 @@
                 'last:border-b-0' => true,
             ]) style="font-variant-numeric: tabular-nums">
                 <div class="text-ink-900 dark:text-dark-text1">{{ $invoice->invoice_number }}</div>
-                <div class="text-ink-700 dark:text-dark-text2">{{ $invoice->project->name }} &middot; {{ \Illuminate\Support\Carbon::createFromDate($invoice->period_year, $invoice->period_month, 1)->translatedFormat('M Y') }}</div>
+                <div class="text-ink-700 dark:text-dark-text2">{{ $invoice->project->name }} &middot; {{ $invoice->periodLabel('M') }}</div>
                 <div class="text-ink-700 dark:text-dark-text2">{{ $invoice->due_date->format('d-m-Y') }}</div>
                 <div class="text-right text-ink-900 dark:text-dark-text1">&euro; {{ number_format($invoice->total, 2, ',', '.') }}</div>
                 <div><x-invoice-status-badge :status="$invoice->status" :payment-status="$invoice->payment_status" /></div>
                 <div class="text-right">
                     <a href="{{ route('portal.invoices.download', $invoice) }}" class="text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">PDF</a>
+                    @if ($invoice->timesheet_pdf_path)
+                        <a href="{{ route('portal.invoices.timesheet', $invoice) }}" class="ml-2 text-brand-600 hover:text-brand-800 dark:text-brand-darkhover">Urenspecificatie</a>
+                    @endif
                 </div>
             </div>
         @empty
