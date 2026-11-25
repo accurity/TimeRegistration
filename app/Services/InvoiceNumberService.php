@@ -9,14 +9,13 @@ use Carbon\Carbon;
 class InvoiceNumberService
 {
     /**
-     * Determine the next sequence number for a client, resetting per calendar year of the invoice date.
+     * Determine the next sequence number, continuing across all clients and resetting per calendar year of the invoice date.
      */
-    public function nextSequenceNumber(int $clientId, Carbon|string $invoiceDate, ?int $excludingInvoiceId = null): int
+    public function nextSequenceNumber(Carbon|string $invoiceDate, ?int $excludingInvoiceId = null): int
     {
         $date = Carbon::parse($invoiceDate);
 
         $lastSequenceNumber = Invoice::query()
-            ->where('client_id', $clientId)
             ->whereYear('invoice_date', $date->year)
             ->when($excludingInvoiceId, fn ($query) => $query->where('id', '!=', $excludingInvoiceId))
             ->max('sequence_number');
@@ -25,12 +24,24 @@ class InvoiceNumberService
     }
 
     /**
+     * Take the sequence number from the first three digits of an (optionally hand-edited) invoice number, so the counter follows it.
+     */
+    public function sequenceNumberFor(string $invoiceNumber, Carbon|string $invoiceDate, ?int $excludingInvoiceId = null): int
+    {
+        if (preg_match('/^(\d{3})/', $invoiceNumber, $matches)) {
+            return (int) $matches[1];
+        }
+
+        return $this->nextSequenceNumber($invoiceDate, $excludingInvoiceId);
+    }
+
+    /**
      * @return array{sequence_number: int, invoice_number: string}
      */
     public function generate(Client $client, Carbon|string $invoiceDate): array
     {
         $date = Carbon::parse($invoiceDate);
-        $sequenceNumber = $this->nextSequenceNumber($client->id, $date);
+        $sequenceNumber = $this->nextSequenceNumber($date);
 
         return [
             'sequence_number' => $sequenceNumber,
